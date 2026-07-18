@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css"> 
+  
+  <!-- CALL HIGHLIGHT.JS DARK THEME FROM INSTALLED NODE_MODULES -->
+  <link rel="stylesheet" href="./node_modules/highlight.js/styles/github-dark.css" id="hljs-theme-dark">
+  <link rel="stylesheet" href="./node_modules/highlight.js/styles/github.css" id="hljs-theme-light" disabled>
+</head>
+<body>
+
+  <!-- MAIN CONTAINER -->
+  <div class="app-container">
+    
+    <!-- MINIMALIST TITLE BAR (BRIGHT MACOS LIGHTS) -->
+    <div class="custom-title-bar">
+      <div class="window-controls">
+        <div class="btn" id="close-btn"></div>
+        <div class="btn" id="min-btn"></div>
+        <div class="btn" id="max-btn"></div>
+      </div>
+      <div class="title">Ollama Client</div>
+      <!-- Only shown while Zen Mode is active, since the main toggle (in the sidebar) hides itself then -->
+      <button id="zen-exit-btn" class="zen-exit-btn" title="Exit Zen Mode">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3C7 3 3 7 3 13c0 4 3 7 7 7 6 0 10-5 10-14 0-1.5-.2-2.5-.5-3-3 1-6 1-7.5 0Z"></path>
+          <path d="M8 20c1-4 4-8 8-11"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <div class="content-wrapper">
+      
+      <!-- SIDEBAR: MODEL & CHAT HISTORY -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h3>Models</h3>
+          <button id="refresh-models-btn" title="Refresh">⟳</button>
+        </div>
+        <select id="model-select"></select>
+
+        <!-- CHAT HISTORY SECTION -->
+        <div class="history-section">
+          <div class="history-header">
+            <h4>History</h4>
+            <button id="new-chat-btn">New chat</button>
+          </div>
+          <div id="history-list"></div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-footer-actions">
+            <button id="zen-mode-btn" class="footer-icon-btn" title="Toggle Zen Mode">
+              <svg class="icon leaf-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3C7 3 3 7 3 13c0 4 3 7 7 7 6 0 10-5 10-14 0-1.5-.2-2.5-.5-3-3 1-6 1-7.5 0Z"></path>
+                <path d="M8 20c1-4 4-8 8-11"></path>
+              </svg>
+              <span class="footer-btn-label">Zen Mode</span>
+            </button>
+            <button id="settings-btn" class="footer-icon-btn" title="Settings">
+              <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              <span class="footer-btn-label">Settings</span>
+            </button>
+          </div>
+          <p>Status: <span id="status-text">...</span></p>
+        </div>
+      </div>
+
+      <!-- MAIN CHAT AREA -->
+      <div class="chat-area">
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <!-- Chat Input Fixed at Bottom (Centered wrapper) -->
+        <div class="chat-input-container">
+          <div class="input-wrapper">
+            <textarea id="chat-input" placeholder="Message local AI agent..." rows="1"></textarea>
+            <button id="send-btn">⮝</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settings-modal" class="settings-modal hidden">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h3>Settings</h3>
+        <button id="settings-close-btn" title="Close">&times;</button>
+      </div>
+
+      <div class="settings-body">
+        <section class="settings-section">
+          <h4>Appearance</h4>
+
+          <div class="setting-row theme-row">
+            <label>Dark Mode</label>
+            <label class="switch">
+              <input type="checkbox" id="theme-switch" checked />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <label>Overlay Transparency</label>
+            <div class="slider-row">
+              <input type="range" id="overlay-opacity-slider" min="20" max="100" step="5" />
+              <span id="overlay-opacity-value">80%</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h4>AI Provider</h4>
+
+          <div class="setting-row">
+            <label>Source</label>
+            <select id="provider-select">
+              <option value="ollama">Local</option>
+              <option value="cloud">Cloud API</option>
+            </select>
+          </div>
+
+          <div id="local-settings" class="local-settings hidden">
+            <div class="setting-row">
+              <label>Local LLM Runner</label>
+              <select id="local-runner-select">
+                <option value="ollama" data-port="11434">Ollama</option>
+                <option value="lmstudio" data-port="1234">LM Studio</option>
+                <option value="llamacpp" data-port="8080">llama.cpp Server</option>
+                <option value="jan" data-port="1337">Jan</option>
+                <option value="custom" data-port="">Custom</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label>Port</label>
+              <input type="text" id="local-port-input" placeholder="11434" inputmode="numeric" />
+            </div>
+          </div>
+
+          <div id="cloud-settings" class="cloud-settings hidden">
+            <div class="setting-row">
+              <label>API Base URL</label>
+              <input type="text" id="cloud-base-url" placeholder="https://api.openai.com/v1" />
+            </div>
+            <div class="setting-row">
+              <label>Model</label>
+              <input type="text" id="cloud-model" placeholder="gpt-4o-mini" />
+            </div>
+            <div class="setting-row">
+              <label>API Key</label>
+              <input type="password" id="cloud-api-key" placeholder="sk-..." autocomplete="off" />
+            </div>
+            <div class="setting-row api-key-row">
+              <span id="api-key-status" class="api-key-status"></span>
+              <button type="button" id="clear-api-key-btn" class="text-btn">Clear saved key</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="settings-footer">
+        <span id="settings-save-status"></span>
+        <button id="settings-save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>

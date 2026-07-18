@@ -1,0 +1,1356 @@
+/* ==========================================================================
+   1. GLOBAL SYSTEM SETTINGS & APP CONTAINER
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+html, body {
+  background: transparent !important;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background: #141416; 
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px; 
+  overflow: hidden;    
+}
+
+/* ==========================================================================
+   2. CUSTOM TITLE BAR & BRIGHT MACOS TRAFFIC LIGHTS
+   ========================================================================== */
+.custom-title-bar {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  background: #0f0f11;
+  padding: 0 15px;
+  -webkit-app-region: drag;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  user-select: none;
+}
+
+.title {
+  font-weight: bolder;
+  flex-grow: 1;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: #52525b;
+  padding-right: 60px; 
+}
+
+.window-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+
+.btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.btn:hover {
+  opacity: 0.8; 
+}
+
+#close-btn { background-color: #ff5f56 !important; } 
+#min-btn   { background-color: #ffbd2e !important; } 
+#max-btn   { background-color: #27c93f !important; }
+
+/* ==========================================================================
+   3. APP CONTENT & SIDEBAR WORKSPACE
+   ========================================================================== */
+.content-wrapper {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 240px;
+  background: #0f0f11;
+  padding: 20px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  border-right: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #a1a1aa;
+}
+
+.sidebar-header h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#refresh-models-btn {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  font-size: 14px;
+}
+#refresh-models-btn:hover { color: #fff; }
+
+#model-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: #141416;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  color: #a1a1aa;
+  font-size: 12px;
+  outline: none;
+  appearance: none;
+}
+
+/* ==========================================================================
+   4. CHAT HISTORY MANAGEMENT
+   ========================================================================== */
+.history-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px;
+  overflow: hidden;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.history-header h4 {
+  color: #52525b;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#new-chat-btn {
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  font-size: 11px;
+}
+#new-chat-btn:hover { color: #fff; }
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #71717a;
+  cursor: pointer;
+}
+.history-item.active {
+  background: #141416;
+  color: #f4f4f5;
+}
+.history-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.delete-history-btn {
+  background: transparent;
+  border: none;
+  color: #52525b;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: none;
+}
+.history-item:hover .delete-history-btn {
+  display: block;
+}
+.delete-history-btn:hover { color: #ef4444; }
+
+.sidebar-footer {
+  margin-top: auto;
+  font-size: 11px;
+  color: #3f3f46;
+}
+
+/* ==========================================================================
+   5. BORDERLESS MAIN CHAT STAGE & MINIMALIST INPUT
+   ========================================================================== */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Locks the default page scroll */
+}
+
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #141416;
+  height: 100%; /* Make sure the chat area will always be as tall as its container */
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 40px 15% 20px 15%;
+  overflow-y: auto !important; /* Allows user to scroll through the message box */
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.message {
+  max-width: 100%;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #e4e4e7;
+}
+
+.user-message {
+  color: #f4f4f5;
+  align-self: flex-end;
+  background: #1f1f23;
+  padding: 10px 16px;
+  border-radius: 12px;
+}
+
+.ai-message {
+  color: #f4f4f5 ;
+  align-self: flex-start;
+  padding: 10px 0;
+}
+
+/* OUTERMOST CONTAINER (FOR MARGINS AND ALIGNMENT ONLY) */
+.chat-input-container {
+  padding: 20px 15% 30px 15%;
+  display: flex;
+  flex-direction: column;
+  background: #141416; /* Keeps the background fixed to avoid exposing scrolled content underneath */
+}
+
+/* INTERMEDIATE WRAPPER (DETERMINES COORDINATES TO CENTER BUTTON) */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center; 
+}
+
+#chat-input {
+  flex: 1;
+  background: #1f1f23;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 24px; 
+  padding: 14px 50px 14px 20px; 
+  color: #ffffff;
+  font-size: 14px;
+  resize: none;
+  max-height: 200px;
+  outline: none;
+  line-height: 1.5;
+  transition: border-color 0.2s ease;
+  
+  /* HIDE SCROLLBAR FOR OTHER BROWSERS IF ANY */
+  box-sizing: border-box;
+  overflow-y: auto;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+#chat-input:focus {
+  border-color: rgba(255, 255, 255, 0.1); 
+}
+
+/* COMPLETELY HIDE THE PROMPT INPUT BOX SCROLLBAR ON WEBKIT/ELECTRON */
+#chat-input::-webkit-scrollbar {
+  display: none !important;
+}
+
+#send-btn {
+  position: absolute;
+  right: 12px;      /* Fixed 12px margin from the right edge */
+  bottom: 12px;     /* REPLACED TOP: Fixed position at the bottom, 12px from the lower edge */
+  
+  background: #ffffff;    
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;     
+  color: #141416;         
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease, background-color 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10; 
+}
+
+/* FIX ACTIVE EFFECT (REMOVED OLD TRANSLATEY) */
+#send-btn:active {
+  transform: scale(0.92); 
+}
+
+#send-btn:hover {
+  background-color: #e4e4e7; 
+}
+
+#send-btn:active {
+  transform: translateY(-50%) scale(0.92); 
+}
+
+
+/* ==========================================================================
+   SCROLLBAR CONFIGURATION SPECIFIC TO EACH AREA
+   ========================================================================== */
+
+/* 1. ENABLE AND DISPLAY SCROLLBAR ONLY INSIDE THE CHAT MESSAGES CONTAINER */
+.chat-messages::-webkit-scrollbar {
+  width: 4px !important;
+  display: block !important;
+}
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #27272a !important;
+  border-radius: 2px !important;
+}
+
+/* 2. ENABLE AND DISPLAY SCROLLBAR ONLY FOR THE SIDEBAR */
+/* Note: If the Sidebar class name in the HTML file is different (.sidebar-menu, .left-bar...), update it here */
+.sidebar::-webkit-scrollbar {
+  width: 4px !important;
+  display: block !important;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: #27272a !important;
+  border-radius: 2px !important;
+}
+
+
+/* CODE BLOCK CONTAINER */
+.chat-messages pre {
+  position: relative !important;
+  margin: 15px 0;
+  border-radius: 8px;
+  background: #1e1e1e !important; 
+  overflow: hidden !important; 
+  display: flex !important;
+  flex-direction: column !important; 
+  width: 100% !important;
+  box-sizing: border-box !important;
+  
+  /* REMOVE REDUNDANT PADDING - To keep content flush with header/footer */
+  padding: 0 !important; 
+}
+
+/* TOP HEADER BAR (SLIM) */
+.code-header {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  display: flex !important;
+  align-items: center !important;
+  background: #232324 !important; 
+  
+  /* REDUCE VERTICAL PADDING TO 3PX FOR AN ULTRA-SLIM LOOK */
+  padding: 3px 14px !important;    
+  font-size: 10px !important;       
+  font-weight: 500 !important;
+  letter-spacing: 0.8px !important; 
+  color: #71717a !important;       
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, sans-serif !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.015) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+/* INNER CODE TEXT CONTAINER */
+.chat-messages pre code {
+  display: block !important;
+  overflow-x: auto !important; 
+  background: transparent !important; 
+  flex: 1 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+
+  /* ADJUST TEXT SPACING TO PREVENT BLOATING */
+  padding: 0 16px !important; 
+  margin-top: 28px !important;  /* Make precise room for the Header */
+  margin-bottom: 34px !important; /* Make precise room for the Footer containing large buttons */
+}
+
+/* BOTTOM CODE FOOTER BAR CONTAINING COPY BUTTON (SLIM) */
+.code-footer {
+  position: absolute !important;
+  bottom: 0;
+  left: 0;
+  display: flex !important;
+  justify-content: flex-end !important; 
+  align-items: center !important;
+  background: #232324 !important;  
+  
+  /* REDUCE VERTICAL PADDING TO 2PX FOR A SLIM FOOTER BODY */
+  padding: 2px 14px !important;    
+  border-top: 1px solid rgba(255, 255, 255, 0.015) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+/* ADJUST COPY BUTTON TO BE LARGER AND EASIER TO CLICK */
+.copy-code-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #71717a !important; 
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+  transition: color 0.15s ease, background-color 0.15s ease !important;
+
+  /* INCREASE BUTTON PADDING FOR A LARGER CLICKABLE AREA */
+  padding: 6px !important;         
+}
+
+.copy-code-btn:hover {
+  color: #e4e4e7 !important; 
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ENLARGE THE INSIDE SVG ICON */
+.copy-code-btn svg {
+  width: 14px !important;          
+  height: 14px !important;
+}
+
+/* COPIED TOAST NOTIFICATION FLOATING ABOVE THE FOOTER */
+.copied-toast {
+  position: absolute !important;
+  bottom: 42px !important; /* Push up slightly to avoid overlapping the large copy button */        
+  right: 14px !important;
+  background: #202021 !important; 
+  border: 1px solid rgba(255, 255, 255, 0.05) !important; 
+  color: #d4d4d8 !important; 
+  font-size: 10px !important;
+  font-family: system-ui, sans-serif !important;
+  padding: 4px 10px !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+  pointer-events: none !important; 
+  opacity: 0 !important;
+  transform: translateY(3px) !important;
+  transition: opacity 0.15s ease, transform 0.15s ease !important;
+  z-index: 20 !important;
+}
+
+.copied-toast.show {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* ADJUSTMENTS FOR SHORT CODE BLOCKS ONLY */
+.chat-messages pre.short-code {
+  /* Restore padding inside the container since header/footer are hidden */
+  padding: 12px 16px !important; 
+}
+
+.chat-messages pre.short-code code {
+  /* Reset margins to remove blank spaces at top and bottom */
+  margin-top: 0 !important;   
+  margin-bottom: 0 !important; 
+  padding: 0 !important;
+}
+
+/* Force hide header and footer for short code blocks */
+.chat-messages pre.short-code .code-header,
+.chat-messages pre.short-code .code-footer {
+  display: none !important;
+}
+
+/* ==========================================================================
+   6. SETTINGS MODAL
+   ========================================================================== */
+.settings-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.settings-modal.hidden {
+  display: none;
+}
+
+.settings-panel {
+  width: 380px;
+  max-height: 80vh;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.settings-header h3 {
+  font-size: 14px;
+  color: #f4f4f5;
+}
+
+#settings-close-btn {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+}
+#settings-close-btn:hover { color: #fff; }
+
+.settings-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  /* Stays scrollable, just without a visible browser scrollbar */
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* old Edge/IE */
+}
+
+.settings-body::-webkit-scrollbar {
+  width: 0 !important;
+  display: none !important;
+}
+
+.settings-section h4 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #52525b;
+  margin-bottom: 10px;
+}
+
+.setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.setting-row label {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.setting-row input[type="text"],
+.setting-row input[type="password"],
+.setting-row select {
+  background: #141416;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #f4f4f5;
+  font-size: 12px;
+  outline: none;
+}
+
+.setting-row input[type="text"]:focus,
+.setting-row input[type="password"]:focus,
+.setting-row select:focus {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px; /* matches thumb size so the thumb has room to sit centered */
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  --slider-fill: rgba(255, 255, 255, 0.12);
+}
+
+/* Explicit track sizing - without this, the thumb centers against the
+   browser's own default track height instead of our 4px visual track,
+   which is what was throwing the knot off-center. Reads the same
+   --slider-fill variable the JS progress-fill gradient writes to. */
+.slider-row input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--slider-fill);
+}
+
+.slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #f4f4f5;
+  cursor: pointer;
+  margin-top: -6px; /* (track height 4px - thumb height 16px) / 2, keeps knot centered */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.slider-row input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--slider-fill);
+}
+
+.slider-row input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #f4f4f5;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+body.light-theme .slider-row input[type="range"] {
+  --slider-fill: rgba(0, 0, 0, 0.1);
+}
+body.light-theme .slider-row input[type="range"]::-webkit-slider-thumb,
+body.light-theme .slider-row input[type="range"]::-moz-range-thumb {
+  background: #18181b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.slider-row span {
+  font-size: 11px;
+  color: #71717a;
+  width: 36px;
+  text-align: right;
+}
+
+.theme-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.theme-option {
+  flex: 1;
+  padding: 8px 0;
+  background: #141416;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  color: #71717a;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.theme-option.active {
+  background: #f4f4f5;
+  color: #141416;
+  border-color: #f4f4f5;
+}
+
+.cloud-settings.hidden,
+.local-settings.hidden {
+  display: none;
+}
+
+.local-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 10px 2px 10px;
+  margin: -4px 0 4px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+body.light-theme .local-settings {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.api-key-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -4px;
+}
+
+.api-key-status {
+  font-size: 11px;
+  color: #52525b;
+}
+
+.text-btn {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.text-btn:hover { color: #ef4444; }
+
+.settings-footer {
+  padding: 14px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#settings-save-status {
+  font-size: 11px;
+  color: #22c55e;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+#settings-save-status.show { opacity: 1; }
+
+#settings-save-btn {
+  background: #f4f4f5;
+  color: #141416;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+#settings-save-btn:hover { background: #e4e4e7; }
+
+/* ==========================================================================
+   7. LIGHT THEME OVERRIDES
+   ========================================================================== */
+body.light-theme .app-container { background: #ffffff; }
+body.light-theme .custom-title-bar { background: #f4f4f5; border-bottom-color: rgba(0,0,0,0.06); }
+body.light-theme .title { color: #71717a; }
+body.light-theme .sidebar { background: #f9f9fb; border-right-color: rgba(0,0,0,0.05); }
+body.light-theme .sidebar-header { color: #52525b; }
+body.light-theme #model-select { background: #ffffff; color: #3f3f46; border-color: rgba(0,0,0,0.08); }
+body.light-theme .history-item { color: #52525b; }
+body.light-theme .history-item.active { background: #ececef; color: #18181b; }
+body.light-theme .chat-area { background: #ffffff; }
+body.light-theme .message { color: #27272a; }
+body.light-theme .user-message { color: #18181b; background: #f0f0f2; }
+body.light-theme .ai-message { color: #18181b; }
+body.light-theme .chat-input-container { background: #ffffff; }
+body.light-theme #chat-input { background: #f0f0f2; color: #18181b; border-color: rgba(0,0,0,0.06); }
+body.light-theme #send-btn { background: #18181b; color: #ffffff; }
+body.light-theme #send-btn:hover { background: #3f3f46; }
+body.light-theme .settings-panel { background: #ffffff; border-color: rgba(0,0,0,0.08); }
+body.light-theme .settings-header { border-bottom-color: rgba(0,0,0,0.06); }
+body.light-theme .settings-header h3 { color: #18181b; }
+body.light-theme .setting-row input,
+body.light-theme .setting-row select,
+body.light-theme .theme-option {
+  background: #f4f4f5;
+  color: #18181b;
+  border-color: rgba(0,0,0,0.08);
+}
+body.light-theme .settings-footer { border-top-color: rgba(0,0,0,0.06); }
+
+/* ==========================================================================
+   8. AI THOUGHTS / REASONING DROPDOWN
+   ========================================================================== */
+.thoughts-dropdown {
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  max-width: 420px;
+}
+
+.thoughts-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: #71717a;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+}
+.thoughts-toggle:hover { color: #a1a1aa; }
+
+.thoughts-toggle .chevron {
+  transition: transform 0.15s ease;
+  font-size: 9px;
+}
+
+.thoughts-dropdown.open .chevron {
+  transform: rotate(90deg);
+}
+
+.thoughts-content {
+  display: none;
+  padding: 0 12px 12px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #71717a;
+  white-space: pre-wrap;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.thoughts-dropdown.open .thoughts-content {
+  display: block;
+  padding-top: 10px;
+}
+
+body.light-theme .thoughts-dropdown {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0,0,0,0.06);
+}
+body.light-theme .thoughts-content { color: #52525b; }
+
+/* ==========================================================================
+   9. MARKDOWN RENDERING INSIDE AI RESPONSES
+   ========================================================================== */
+.ai-answer {
+  white-space: normal; /* override inherited pre-wrap from .message */
+}
+
+.ai-answer h1, .ai-answer h2, .ai-answer h3, .ai-answer h4 {
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 16px 0 8px 0;
+}
+.ai-answer h1:first-child, .ai-answer h2:first-child,
+.ai-answer h3:first-child, .ai-answer h4:first-child {
+  margin-top: 0;
+}
+.ai-answer h1 { font-size: 19px; }
+.ai-answer h2 { font-size: 17px; }
+.ai-answer h3 { font-size: 15px; }
+.ai-answer h4 { font-size: 13px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.4px; }
+
+.ai-answer p {
+  margin: 0 0 12px 0;
+}
+.ai-answer p:last-child { margin-bottom: 0; }
+
+.ai-answer ul, .ai-answer ol {
+  margin: 4px 0 14px 22px;
+  padding: 0;
+}
+.ai-answer li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+.ai-answer li:last-child { margin-bottom: 0; }
+
+.ai-answer strong { font-weight: 700; color: #ffffff; }
+.ai-answer em { font-style: italic; }
+
+.ai-answer .inline-code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  color: #e4e4e7;
+}
+
+body.light-theme .ai-answer strong { color: #18181b; }
+body.light-theme .ai-answer h4 { color: #71717a; }
+body.light-theme .ai-answer .inline-code {
+  background: rgba(0, 0, 0, 0.06);
+  color: #18181b;
+}
+
+/* ==========================================================================
+   10. THEME TOGGLE SWITCH
+   ========================================================================== */
+.theme-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  background: #3f3f46;
+  border-radius: 999px;
+  transition: background-color 0.2s ease;
+}
+
+.switch-slider::before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.switch input:checked + .switch-slider {
+  background: #4ade80;
+}
+
+.switch input:checked + .switch-slider::before {
+  transform: translateX(18px);
+}
+
+/* ==========================================================================
+   11. STYLIZED DROPDOWNS (native <select> elements, excludes AI thoughts dropdown)
+   ========================================================================== */
+#model-select,
+#provider-select,
+#local-runner-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #141416;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%2371717a' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 10px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+  padding: 9px 30px 9px 12px !important;
+  color: #d4d4d8 !important;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+#model-select:hover,
+#provider-select:hover,
+#local-runner-select:hover {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  background-color: #1a1a1d;
+}
+
+#model-select:focus,
+#provider-select:focus,
+#local-runner-select:focus {
+  outline: none;
+  border-color: #4ade80 !important;
+}
+
+#model-select option,
+#provider-select option,
+#local-runner-select option {
+  background: #1a1a1d;
+  color: #e4e4e7;
+}
+
+body.light-theme #model-select,
+body.light-theme #provider-select,
+body.light-theme #local-runner-select {
+  background-color: #f4f4f5;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%2352525b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  color: #18181b !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+body.light-theme #model-select option,
+body.light-theme #provider-select option,
+body.light-theme #local-runner-select option {
+  background: #ffffff;
+  color: #18181b;
+}
+
+/* ==========================================================================
+   12. SIDEBAR FOOTER ACTIONS (Zen Mode + Settings)
+   ========================================================================== */
+.sidebar-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.footer-icon-btn {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  background: #141416;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #a1a1aa;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.footer-icon-btn:hover {
+  background: #1c1c1f;
+  color: #f4f4f5;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.footer-icon-btn .icon {
+  flex-shrink: 0;
+  transition: width 0.15s ease, height 0.15s ease;
+}
+
+.footer-icon-btn.active {
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+body.light-theme .footer-icon-btn {
+  background: #ffffff;
+  color: #71717a;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+body.light-theme .footer-icon-btn:hover {
+  background: #f0f0f2;
+  color: #18181b;
+}
+body.light-theme .footer-icon-btn.active {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* ==========================================================================
+   13. ZEN MODE - COLLAPSED SIDEBAR & TITLE BAR ESCAPE HATCH
+   ========================================================================== */
+.sidebar.zen-collapsed {
+  width: 64px;
+  padding: 16px 8px;
+  align-items: center;
+}
+
+.sidebar.zen-collapsed .sidebar-header,
+.sidebar.zen-collapsed #model-select,
+.sidebar.zen-collapsed .custom-select-for-model-select,
+.sidebar.zen-collapsed .history-section,
+.sidebar.zen-collapsed .sidebar-footer p {
+  display: none;
+}
+
+.sidebar.zen-collapsed .sidebar-footer-actions {
+  margin-bottom: 0;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar.zen-collapsed .footer-btn-label {
+  display: none;
+}
+
+/* Large circular icon-only buttons, ~90% of the collapsed sidebar width */
+.sidebar.zen-collapsed .footer-icon-btn {
+  width: 90%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border-radius: 50%;
+  justify-content: center;
+}
+
+.sidebar.zen-collapsed .footer-icon-btn .icon {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.zen-exit-btn {
+  display: none;
+  -webkit-app-region: no-drag;
+  background: transparent;
+  border: none;
+  color: #4ade80;
+  cursor: pointer;
+  padding-right: 5px;
+  align-items: center;
+}
+
+.app-container.overlay-active .zen-exit-btn {
+  display: flex;
+}
+
+/* ==========================================================================
+   14. LIGHT THEME - CODE BLOCKS
+   ========================================================================== */
+body.light-theme .chat-messages pre {
+  background: #f2f2f4 !important;
+}
+
+body.light-theme .code-header {
+  background: #e9e9ec !important;
+  color: #71717a !important;
+  border-bottom-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-theme .code-footer {
+  background: #e9e9ec !important;
+  border-top-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-theme .chat-messages pre code {
+  color: #27272a !important;
+}
+
+body.light-theme .copy-code-btn {
+  color: #71717a !important;
+}
+
+body.light-theme .copy-code-btn:hover {
+  color: #18181b !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+body.light-theme .copied-toast {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: #3f3f46 !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ==========================================================================
+   15. CUSTOM DROPDOWNS (replaces native <select> rendering entirely)
+   ========================================================================== */
+.native-select-hidden {
+  display: none !important;
+}
+
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #141416;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: #d4d4d8;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.custom-select-trigger::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #71717a;
+  border-bottom: 1.5px solid #71717a;
+  transform: rotate(45deg);
+  margin-left: 8px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.custom-select-trigger.open::after {
+  transform: rotate(-135deg);
+}
+
+.custom-select-trigger:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: #1a1a1d;
+}
+
+.custom-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #1a1a1d;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 50;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.custom-select-menu.hidden {
+  display: none;
+}
+
+.custom-select-option {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #d4d4d8;
+  cursor: pointer;
+}
+.custom-select-option:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+.custom-select-option.selected {
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+}
+
+body.light-theme .custom-select-trigger {
+  background: #f4f4f5;
+  color: #18181b;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+body.light-theme .custom-select-trigger:hover {
+  background: #ececef;
+}
+body.light-theme .custom-select-trigger::after {
+  border-color: #52525b;
+}
+body.light-theme .custom-select-menu {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+body.light-theme .custom-select-option {
+  color: #18181b;
+}
+body.light-theme .custom-select-option:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+body.light-theme .custom-select-option.selected {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+/* Mini stylized scrollbar - scoped only to the "Local LLM Runner" dropdown,
+   since that's the one whose option list is tall enough to scroll. */
+.custom-select-for-local-runner-select .custom-select-menu {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.custom-select-for-local-runner-select .custom-select-menu::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-select-for-local-runner-select .custom-select-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-select-for-local-runner-select .custom-select-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+.custom-select-for-local-runner-select .custom-select-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+body.light-theme .custom-select-for-local-runner-select .custom-select-menu {
+  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+}
+body.light-theme .custom-select-for-local-runner-select .custom-select-menu::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+}
+body.light-theme .custom-select-for-local-runner-select .custom-select-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   17. SETTINGS BUTTON - LOCK TEXT/ICON COLOR TO MATCH THE REST OF THE APP
+   (explicit ID rule so it can never drift from Zen Mode's default state)
+   ========================================================================== */
+#settings-btn,
+#settings-btn .icon,
+#settings-btn .footer-btn-label {
+  color: #a1a1aa;
+}
+#settings-btn:hover,
+#settings-btn:hover .icon,
+#settings-btn:hover .footer-btn-label {
+  color: #f4f4f5;
+}
+body.light-theme #settings-btn,
+body.light-theme #settings-btn .icon,
+body.light-theme #settings-btn .footer-btn-label {
+  color: #71717a;
+}
+body.light-theme #settings-btn:hover,
+body.light-theme #settings-btn:hover .icon,
+body.light-theme #settings-btn:hover .footer-btn-label {
+  color: #18181b;
+}
