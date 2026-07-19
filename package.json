@@ -1,18 +1,15 @@
 {
   "name": "overzen",
-  "version": "Beta-0.1.0",
+  "version": "0.1.0",
   "description": "A minimal, always-on-top overlay chat client for local and cloud LLMs.",
-  "author": "Sam Bui",
+  "author": "Your Name <you@example.com>",
   "license": "MIT",
   "main": "main.js",
   "private": true,
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "build": "electron-builder --publish=never",
-    "build:win": "electron-builder --win --publish=never",
-    "build:mac": "electron-builder --mac --publish=never",
-    "build:linux": "electron-builder --linux --publish=never"
+    "build": "electron-builder --win --publish=never"
   },
   "dependencies": {
     "highlight.js": "^11.11.1"
@@ -24,7 +21,7 @@
   "build": {
     "appId": "com.overzen.app",
     "productName": "Overzen",
-    "copyright": "Copyright © 2026 Overzen team",
+    "copyright": "Copyright © 2026 Overzen",
     "asar": true,
     "directories": {
       "output": "dist",
@@ -36,6 +33,7 @@
       "index.html",
       "script.js",
       "style.css",
+      "assets/**/*",
       "node_modules/**/*",
       "!node_modules/**/{CHANGELOG.md,README.md,readme.md,.npmignore}",
       "!node_modules/**/{test,tests,__tests__,docs,doc,example,examples}/**"
@@ -57,28 +55,6 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Overzen"
-    },
-    "mac": {
-      "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] }
-      ],
-      "icon": "build/icon.icns",
-      "category": "public.app-category.productivity",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
-    },
-    "dmg": {
-      "sign": false
-    },
-    "linux": {
-      "target": [
-        { "target": "AppImage", "arch": ["x64"] },
-        { "target": "deb", "arch": ["x64"] }
-      ],
-      "icon": "build/icon.png",
-      "category": "Utility",
-      "artifactName": "${productName}-${version}.${ext}"
     }
   }
 }
