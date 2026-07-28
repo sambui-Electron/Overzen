@@ -37,6 +37,8 @@ html, body {
   -webkit-app-region: drag;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   user-select: none;
+  position: relative;
+  z-index: 600; /* stays above the lock screen (z-index 500) so close/min/max remain usable while locked */
 }
 
 .title {
@@ -103,15 +105,6 @@ html, body {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-
-#refresh-models-btn {
-  background: transparent;
-  border: none;
-  color: #71717a;
-  cursor: pointer;
-  font-size: 14px;
-}
-#refresh-models-btn:hover { color: #fff; }
 
 #model-select {
   width: 100%;
@@ -272,7 +265,7 @@ html, body {
   background: #1f1f23;
   border: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: 24px; 
-  padding: 14px 50px 14px 20px; 
+  padding: 14px 215px 14px 20px; 
   color: #ffffff;
   font-size: 14px;
   resize: none;
@@ -295,6 +288,94 @@ html, body {
 /* COMPLETELY HIDE THE PROMPT INPUT BOX SCROLLBAR ON WEBKIT/ELECTRON */
 #chat-input::-webkit-scrollbar {
   display: none !important;
+}
+
+/* MODEL SELECTOR BAR - sits inside the input box, immediately to the left of the send button */
+.input-model-bar {
+  position: absolute;
+  right: 54px;      /* clears the 32px send button + its 12px margin + a small gap */
+  bottom: 9px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 170px;
+  z-index: 10;
+}
+
+/* Compact override of the shared custom-select look, scoped to the input bar */
+.input-model-bar .custom-select {
+  min-width: 0;
+  flex: 1;
+}
+.input-model-bar .custom-select-trigger {
+  padding: 6px 24px 6px 10px;
+  font-size: 11px;
+  /* Blends into the chat input box itself - identical background, no
+     border at all, so it doesn't read as a separate control. */
+  background: #1f1f23;
+  border: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.input-model-bar .custom-select-trigger:hover {
+  background: #26262b;
+}
+.input-model-bar .custom-select-trigger::after {
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+}
+.input-model-bar .custom-select-menu {
+  top: auto;
+  bottom: calc(100% + 6px);
+  min-width: 180px;
+  right: 0;
+  left: auto;
+  /* A quieter, more minimal menu than the default dropdown look. */
+  background: #1c1c1f;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* The currently-selected model gets a lighter background than the rest
+   of the menu (instead of the green accent used elsewhere), so it reads
+   as "this one is active" without shouting. */
+.input-model-bar .custom-select-option.selected {
+  background: rgba(255, 255, 255, 0.09);
+  color: #f4f4f5;
+}
+
+body.light-theme .input-model-bar .custom-select-trigger {
+  background: #f0f0f2;
+  border: none;
+}
+body.light-theme .input-model-bar .custom-select-trigger:hover {
+  background: #e5e5e8;
+}
+body.light-theme .input-model-bar .custom-select-menu {
+  background: #fafafa;
+  border-color: rgba(0, 0, 0, 0.06);
+}
+/* Greyish rather than green, matching the muted "blend in" look for light theme. */
+body.light-theme .input-model-bar .custom-select-option.selected {
+  background: rgba(0, 0, 0, 0.07);
+  color: #18181b;
+}
+
+body.mocha-theme .input-model-bar .custom-select-trigger {
+  background: #313244;
+  border: none;
+}
+body.mocha-theme .input-model-bar .custom-select-trigger:hover {
+  background: #383a54;
+}
+body.mocha-theme .input-model-bar .custom-select-menu {
+  background: #1e1e2e;
+  border-color: rgba(205, 214, 244, 0.06);
+}
+body.mocha-theme .input-model-bar .custom-select-option.selected {
+  background: rgba(205, 214, 244, 0.12);
+  color: #cdd6f4;
 }
 
 #send-btn {
@@ -620,61 +701,94 @@ html, body {
   gap: 10px;
 }
 
-.slider-row input[type="range"] {
+/* Wrapper that holds the fake visual track/fill/thumb, with the real
+   <input type="range"> stretched invisibly on top for dragging/keyboard
+   support. Chromium's own redesigned range-input rendering (the source
+   of the persistent hairlines above/below the track) never gets a
+   chance to paint anything, because the native element is never shown. */
+.custom-slider {
+  position: relative;
   flex: 1;
+  height: 16px;
+  display: flex;
+  align-items: center;
+
+  --slider-fill-color: #f4f4f5;
+  --slider-track-color: rgba(255, 255, 255, 0.12);
+}
+
+.custom-slider-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  border-radius: 999px;
+  background: var(--slider-track-color);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.custom-slider-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%; /* set by JS */
+  background: var(--slider-fill-color);
+  border-radius: 999px;
+}
+
+.custom-slider-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0%; /* set by JS */
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--slider-fill-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.custom-slider input[type="range"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0; /* fully invisible - the divs above are the only thing drawn */
+  cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
-  height: 16px; /* matches thumb size so the thumb has room to sit centered */
   background: transparent;
-  outline: none;
-  cursor: pointer;
-  --slider-fill: rgba(255, 255, 255, 0.12);
 }
 
-/* Explicit track sizing - without this, the thumb centers against the
-   browser's own default track height instead of our 4px visual track,
-   which is what was throwing the knot off-center. Reads the same
-   --slider-fill variable the JS progress-fill gradient writes to. */
-.slider-row input[type="range"]::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 999px;
-  background: var(--slider-fill);
+.custom-slider input[type="range"]::-webkit-slider-runnable-track,
+.custom-slider input[type="range"]::-moz-range-track {
+  height: 100%;
+  background: transparent;
 }
 
-.slider-row input[type="range"]::-webkit-slider-thumb {
+.custom-slider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
-  background: #f4f4f5;
-  cursor: pointer;
-  margin-top: -6px; /* (track height 4px - thumb height 16px) / 2, keeps knot centered */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-.slider-row input[type="range"]::-moz-range-track {
-  height: 4px;
-  border-radius: 999px;
-  background: var(--slider-fill);
-}
-
-.slider-row input[type="range"]::-moz-range-thumb {
+.custom-slider input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
-  border-radius: 50%;
-  background: #f4f4f5;
+  background: transparent;
   border: none;
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-body.light-theme .slider-row input[type="range"] {
-  --slider-fill: rgba(0, 0, 0, 0.1);
-}
-body.light-theme .slider-row input[type="range"]::-webkit-slider-thumb,
-body.light-theme .slider-row input[type="range"]::-moz-range-thumb {
-  background: #18181b;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+body.light-theme .custom-slider {
+  --slider-fill-color: #18181b;
+  --slider-track-color: rgba(0, 0, 0, 0.1);
 }
 
 .slider-row span {
@@ -710,6 +824,28 @@ body.light-theme .slider-row input[type="range"]::-moz-range-thumb {
 .local-settings.hidden {
   display: none;
 }
+
+/* Generic utility - covers elements (e.g. the Lock footer button, the
+   "current PIN" row) that don't already have a component-specific .hidden rule */
+.hidden {
+  display: none !important;
+}
+
+.applock-form-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.text-btn-confirm {
+  color: #4ade80;
+}
+.text-btn-confirm:hover { color: #22c55e; }
+
+.text-btn-danger {
+  color: #ef4444;
+}
+.text-btn-danger:hover { color: #f87171; }
 
 .local-settings {
   display: flex;
@@ -906,6 +1042,43 @@ body.light-theme .thoughts-content { color: #52525b; }
 .ai-answer strong { font-weight: 700; color: #ffffff; }
 .ai-answer em { font-style: italic; }
 
+.ai-answer .error-explanation {
+  color: #f4b8b8;
+}
+
+.ai-answer .error-advice {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #a1a1aa;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+}
+
+.ai-answer .error-advice strong {
+  color: #d4d4d8;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+body.light-theme .ai-answer .error-explanation {
+  color: #b91c1c;
+}
+
+body.light-theme .ai-answer .error-advice {
+  color: #52525b;
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-theme .ai-answer .error-advice strong {
+  color: #27272a;
+}
+
 .ai-answer .inline-code {
   background: rgba(255, 255, 255, 0.08);
   padding: 2px 6px;
@@ -980,7 +1153,8 @@ body.light-theme .ai-answer .inline-code {
    ========================================================================== */
 #model-select,
 #provider-select,
-#local-runner-select {
+#local-runner-select,
+#cloud-model-list {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -1000,28 +1174,32 @@ body.light-theme .ai-answer .inline-code {
 
 #model-select:hover,
 #provider-select:hover,
-#local-runner-select:hover {
+#local-runner-select:hover,
+#cloud-model-list:hover {
   border-color: rgba(255, 255, 255, 0.2) !important;
   background-color: #1a1a1d;
 }
 
 #model-select:focus,
 #provider-select:focus,
-#local-runner-select:focus {
+#local-runner-select:focus,
+#cloud-model-list:focus {
   outline: none;
   border-color: #4ade80 !important;
 }
 
 #model-select option,
 #provider-select option,
-#local-runner-select option {
+#local-runner-select option,
+#cloud-model-list option {
   background: #1a1a1d;
   color: #e4e4e7;
 }
 
 body.light-theme #model-select,
 body.light-theme #provider-select,
-body.light-theme #local-runner-select {
+body.light-theme #local-runner-select,
+body.light-theme #cloud-model-list {
   background-color: #f4f4f5;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%2352525b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   color: #18181b !important;
@@ -1029,9 +1207,15 @@ body.light-theme #local-runner-select {
 }
 body.light-theme #model-select option,
 body.light-theme #provider-select option,
-body.light-theme #local-runner-select option {
+body.light-theme #local-runner-select option,
+body.light-theme #cloud-model-list option {
   background: #ffffff;
   color: #18181b;
+}
+
+/* Hide the saved-models row until there's actually something saved */
+#cloud-model-list-row.hidden {
+  display: none;
 }
 
 /* ==========================================================================
@@ -1200,6 +1384,51 @@ body.light-theme .copied-toast {
   width: 100%;
 }
 
+/* Refresh row pinned to the top of the dropdown menu (only present on
+   selects created with an onRefresh callback, e.g. the model select). */
+.custom-select-refresh-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #a1a1aa;
+  cursor: pointer;
+}
+.custom-select-refresh-option:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #f4f4f5;
+}
+.custom-select-refresh-option .refresh-icon {
+  font-size: 13px;
+  line-height: 1;
+  transition: transform 0.35s ease;
+}
+.custom-select-refresh-option:active .refresh-icon {
+  transform: rotate(180deg);
+}
+
+.custom-select-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.light-theme .custom-select-refresh-option { color: #52525b; }
+body.light-theme .custom-select-refresh-option:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #18181b;
+}
+body.light-theme .custom-select-divider { background: rgba(0, 0, 0, 0.08); }
+
+body.mocha-theme .custom-select-refresh-option { color: #a6adc8; }
+body.mocha-theme .custom-select-refresh-option:hover {
+  background: rgba(205, 214, 244, 0.08);
+  color: #cdd6f4;
+}
+body.mocha-theme .custom-select-divider { background: rgba(205, 214, 244, 0.1); }
+
 .custom-select-trigger {
   width: 100%;
   box-sizing: border-box;
@@ -1354,3 +1583,317 @@ body.light-theme #settings-btn:hover .icon,
 body.light-theme #settings-btn:hover .footer-btn-label {
   color: #18181b;
 }
+/* ==========================================================================
+   12. APP LOCK (PIN LOCK SCREEN)
+   ========================================================================== */
+.lock-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 12, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.lock-screen.hidden {
+  display: none;
+}
+
+.lock-screen.shake .lock-card {
+  animation: lock-shake 0.32s ease;
+}
+
+@keyframes lock-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+.lock-card {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 28px 26px 24px;
+  background: #0a0a0c;
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+}
+
+.lock-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f4f4f5;
+  margin-bottom: 18px;
+}
+
+.pin-boxes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.pin-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.12s ease;
+}
+
+.pin-box::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f4f4f5;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+
+.pin-box.filled::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.pin-box.active {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.lock-error {
+  font-size: 11px;
+  color: #ef4444;
+  height: 14px;
+  margin-bottom: 0;
+}
+
+body.light-theme .lock-screen {
+  background: rgba(255, 255, 255, 0.88);
+}
+body.light-theme .lock-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.14);
+}
+body.light-theme .lock-title { color: #18181b; }
+body.light-theme .pin-box { border-color: rgba(0, 0, 0, 0.25); }
+body.light-theme .pin-box::before { background: #18181b; }
+body.light-theme .pin-box.active { border-color: rgba(0, 0, 0, 0.55); }
+
+/* ==========================================================================
+   18. CATPPUCCIN MOCHA THEME
+   Palette reference: Base #1e1e2e, Mantle #181825, Crust #11111b,
+   Surface0 #313244, Surface1 #45475a, Surface2 #585b70, Text #cdd6f4,
+   Subtext0 #a6adc8, Overlay0 #6c7086, Mauve #cba6f7, Lavender #b4befe,
+   Blue #89b4fa, Green #a6e3a1, Red #f38ba8, Yellow #f9e2af
+   ========================================================================== */
+body.mocha-theme .app-container { background: #1e1e2e; }
+body.mocha-theme .custom-title-bar { background: #181825; border-bottom-color: rgba(205, 214, 244, 0.06); }
+body.mocha-theme .title { color: #6c7086; }
+body.mocha-theme .sidebar { background: #181825; border-right-color: rgba(205, 214, 244, 0.05); }
+body.mocha-theme .sidebar-header { color: #a6adc8; }
+body.mocha-theme .history-item { color: #a6adc8; }
+body.mocha-theme .history-item.active { background: #313244; color: #cdd6f4; }
+body.mocha-theme .delete-history-btn { color: #585b70; }
+body.mocha-theme .delete-history-btn:hover { color: #f38ba8; }
+body.mocha-theme .chat-area { background: #1e1e2e; }
+body.mocha-theme .message { color: #cdd6f4; }
+body.mocha-theme .user-message { color: #cdd6f4; background: #313244; }
+body.mocha-theme .ai-message { color: #cdd6f4; }
+body.mocha-theme .chat-input-container { background: #1e1e2e; }
+body.mocha-theme #chat-input { background: #313244; color: #cdd6f4; border-color: rgba(205, 214, 244, 0.06); }
+body.mocha-theme #chat-input:focus { border-color: rgba(203, 166, 247, 0.4); }
+body.mocha-theme #send-btn { background: #cba6f7; color: #1e1e2e; }
+body.mocha-theme #send-btn:hover { background: #b4befe; }
+
+body.mocha-theme .settings-panel { background: #181825; border-color: rgba(205, 214, 244, 0.08); }
+body.mocha-theme .settings-header { border-bottom-color: rgba(205, 214, 244, 0.06); }
+body.mocha-theme .settings-header h3 { color: #cdd6f4; }
+body.mocha-theme #settings-close-btn { color: #6c7086; }
+body.mocha-theme #settings-close-btn:hover { color: #cdd6f4; }
+body.mocha-theme .settings-section h4 { color: #6c7086; }
+body.mocha-theme .setting-row label { color: #a6adc8; }
+body.mocha-theme .setting-row input,
+body.mocha-theme .setting-row select,
+body.mocha-theme .theme-option {
+  background: #313244;
+  color: #cdd6f4;
+  border-color: rgba(205, 214, 244, 0.1);
+}
+body.mocha-theme .setting-row input:focus,
+body.mocha-theme .setting-row select:focus { border-color: rgba(203, 166, 247, 0.45); }
+body.mocha-theme .settings-footer { border-top-color: rgba(205, 214, 244, 0.06); }
+body.mocha-theme #settings-save-btn { background: #cba6f7; color: #1e1e2e; }
+body.mocha-theme #settings-save-btn:hover { background: #b4befe; }
+body.mocha-theme #settings-save-status { color: #a6e3a1; }
+
+body.mocha-theme .custom-slider {
+  --slider-fill-color: #cba6f7;
+  --slider-track-color: rgba(205, 214, 244, 0.14);
+}
+
+body.mocha-theme .switch-slider { background: #45475a; }
+body.mocha-theme .switch input:checked + .switch-slider { background: #a6e3a1; }
+
+body.mocha-theme .local-settings {
+  background: rgba(205, 214, 244, 0.04);
+  border-color: rgba(205, 214, 244, 0.06);
+}
+body.mocha-theme .api-key-status { color: #6c7086; }
+body.mocha-theme .text-btn { color: #a6adc8; }
+body.mocha-theme .text-btn:hover { color: #f38ba8; }
+body.mocha-theme .text-btn-confirm { color: #a6e3a1; }
+body.mocha-theme .text-btn-confirm:hover { color: #94e2ac; }
+body.mocha-theme .text-btn-danger { color: #f38ba8; }
+body.mocha-theme .text-btn-danger:hover { color: #eba0ac; }
+
+body.mocha-theme .thoughts-dropdown {
+  background: rgba(205, 214, 244, 0.03);
+  border-color: rgba(205, 214, 244, 0.07);
+}
+body.mocha-theme .thoughts-toggle { color: #a6adc8; }
+body.mocha-theme .thoughts-toggle:hover { color: #cdd6f4; }
+body.mocha-theme .thoughts-content { color: #a6adc8; border-top-color: rgba(205, 214, 244, 0.05); }
+
+body.mocha-theme .ai-answer h4 { color: #a6adc8; }
+body.mocha-theme .ai-answer strong { color: #f5e0dc; }
+body.mocha-theme .ai-answer .error-explanation { color: #f38ba8; }
+body.mocha-theme .ai-answer .error-advice {
+  color: #a6adc8;
+  background: rgba(205, 214, 244, 0.04);
+  border-color: rgba(205, 214, 244, 0.08);
+}
+body.mocha-theme .ai-answer .error-advice strong { color: #cdd6f4; }
+body.mocha-theme .ai-answer .inline-code {
+  background: rgba(205, 214, 244, 0.1);
+  color: #cdd6f4;
+}
+
+body.mocha-theme #model-select,
+body.mocha-theme #provider-select,
+body.mocha-theme #local-runner-select,
+body.mocha-theme #cloud-model-list {
+  background-color: #313244;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23a6adc8' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  color: #cdd6f4 !important;
+  border-color: rgba(205, 214, 244, 0.1) !important;
+}
+body.mocha-theme #model-select option,
+body.mocha-theme #provider-select option,
+body.mocha-theme #local-runner-select option,
+body.mocha-theme #cloud-model-list option {
+  background: #313244;
+  color: #cdd6f4;
+}
+
+body.mocha-theme .footer-icon-btn {
+  background: #181825;
+  color: #a6adc8;
+  border-color: rgba(205, 214, 244, 0.08);
+}
+body.mocha-theme .footer-icon-btn:hover {
+  background: #232336;
+  color: #cdd6f4;
+  border-color: rgba(205, 214, 244, 0.15);
+}
+body.mocha-theme .footer-icon-btn.active {
+  background: rgba(166, 227, 161, 0.12);
+  color: #a6e3a1;
+  border-color: rgba(166, 227, 161, 0.35);
+}
+
+body.mocha-theme .chat-messages pre { background: #11111b !important; }
+body.mocha-theme .code-header {
+  background: #181825 !important;
+  color: #a6adc8 !important;
+  border-bottom-color: rgba(205, 214, 244, 0.05) !important;
+}
+body.mocha-theme .code-footer {
+  background: #181825 !important;
+  border-top-color: rgba(205, 214, 244, 0.05) !important;
+}
+body.mocha-theme .chat-messages pre code { color: #cdd6f4 !important; }
+body.mocha-theme .copy-code-btn { color: #a6adc8 !important; }
+body.mocha-theme .copy-code-btn:hover {
+  color: #cdd6f4 !important;
+  background: rgba(205, 214, 244, 0.08) !important;
+}
+body.mocha-theme .copied-toast {
+  background: #313244 !important;
+  border-color: rgba(205, 214, 244, 0.08) !important;
+  color: #cdd6f4 !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.mocha-theme .custom-select-trigger {
+  background: #313244;
+  color: #cdd6f4;
+  border-color: rgba(205, 214, 244, 0.1);
+}
+body.mocha-theme .custom-select-trigger:hover {
+  border-color: rgba(205, 214, 244, 0.2);
+  background-color: #363652;
+}
+body.mocha-theme .custom-select-trigger::after { border-color: #a6adc8; }
+body.mocha-theme .custom-select-menu {
+  background: #232336;
+  border-color: rgba(205, 214, 244, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+body.mocha-theme .custom-select-option { color: #cdd6f4; }
+body.mocha-theme .custom-select-option:hover { background: rgba(205, 214, 244, 0.08); }
+body.mocha-theme .custom-select-option.selected {
+  background: rgba(166, 227, 161, 0.14);
+  color: #a6e3a1;
+}
+
+body.mocha-theme .custom-select-for-local-runner-select .custom-select-menu {
+  scrollbar-color: rgba(205, 214, 244, 0.2) transparent;
+}
+body.mocha-theme .custom-select-for-local-runner-select .custom-select-menu::-webkit-scrollbar-thumb {
+  background: rgba(205, 214, 244, 0.2);
+}
+body.mocha-theme .custom-select-for-local-runner-select .custom-select-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(205, 214, 244, 0.32);
+}
+
+body.mocha-theme #settings-btn,
+body.mocha-theme #settings-btn .icon,
+body.mocha-theme #settings-btn .footer-btn-label {
+  color: #a6adc8;
+}
+body.mocha-theme #settings-btn:hover,
+body.mocha-theme #settings-btn:hover .icon,
+body.mocha-theme #settings-btn:hover .footer-btn-label {
+  color: #cdd6f4;
+}
+
+body.mocha-theme .chat-messages::-webkit-scrollbar-thumb,
+body.mocha-theme .sidebar::-webkit-scrollbar-thumb {
+  background: #45475a !important;
+}
+
+body.mocha-theme .lock-screen {
+  background: rgba(17, 17, 27, 0.88);
+}
+body.mocha-theme .lock-card {
+  background: #181825;
+  border-color: rgba(205, 214, 244, 0.14);
+}
+body.mocha-theme .lock-title { color: #cdd6f4; }
+body.mocha-theme .pin-box { border-color: rgba(205, 214, 244, 0.28); }
+body.mocha-theme .pin-box::before { background: #cba6f7; }
+body.mocha-theme .pin-box.active { border-color: rgba(203, 166, 247, 0.7); }
+body.mocha-theme .lock-error { color: #f38ba8; }

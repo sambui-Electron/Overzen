@@ -35,12 +35,6 @@
       
       <!-- SIDEBAR: MODEL & CHAT HISTORY -->
       <div class="sidebar">
-        <div class="sidebar-header">
-          <h3>Models</h3>
-          <button id="refresh-models-btn" title="Refresh">⟳</button>
-        </div>
-        <select id="model-select"></select>
-
         <!-- CHAT HISTORY SECTION -->
         <div class="history-section">
           <div class="history-header">
@@ -58,6 +52,13 @@
                 <path d="M8 20c1-4 4-8 8-11"></path>
               </svg>
               <span class="footer-btn-label">Zen Mode</span>
+            </button>
+            <button id="lock-now-btn" class="footer-icon-btn hidden" title="Lock App">
+              <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+                <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+              </svg>
+              <span class="footer-btn-label">Lock</span>
             </button>
             <button id="settings-btn" class="footer-icon-btn" title="Settings">
               <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -79,6 +80,9 @@
         <div class="chat-input-container">
           <div class="input-wrapper">
             <textarea id="chat-input" placeholder="Message local AI agent..." rows="1"></textarea>
+            <div class="input-model-bar">
+              <select id="model-select"></select>
+            </div>
             <button id="send-btn">⮝</button>
           </div>
         </div>
@@ -100,18 +104,25 @@
         <section class="settings-section">
           <h4>Appearance</h4>
 
-          <div class="setting-row theme-row">
-            <label>Dark Mode</label>
-            <label class="switch">
-              <input type="checkbox" id="theme-switch" checked />
-              <span class="switch-slider"></span>
-            </label>
+          <div class="setting-row">
+            <label>Theme</label>
+            <select id="theme-select">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+              <option value="mocha">Catppuccin Mocha</option>
+            </select>
           </div>
 
           <div class="setting-row">
             <label>Overlay Transparency</label>
             <div class="slider-row">
-              <input type="range" id="overlay-opacity-slider" min="20" max="100" step="5" />
+              <div class="custom-slider">
+                <div class="custom-slider-track">
+                  <div class="custom-slider-fill" id="overlay-opacity-fill"></div>
+                </div>
+                <div class="custom-slider-thumb" id="overlay-opacity-thumb"></div>
+                <input type="range" id="overlay-opacity-slider" min="20" max="100" step="5" />
+              </div>
               <span id="overlay-opacity-value">80%</span>
             </div>
           </div>
@@ -154,6 +165,12 @@
               <label>Model</label>
               <input type="text" id="cloud-model" placeholder="gpt-4o-mini" />
             </div>
+            <div class="setting-row" id="cloud-model-list-row">
+              <label>Saved Models</label>
+              <select id="cloud-model-list">
+                <option value="">No saved models yet</option>
+              </select>
+            </div>
             <div class="setting-row">
               <label>API Key</label>
               <input type="password" id="cloud-api-key" placeholder="sk-..." autocomplete="off" />
@@ -164,12 +181,84 @@
             </div>
           </div>
         </section>
+
+        <section class="settings-section">
+          <h4>Security</h4>
+
+          <div class="setting-row theme-row">
+            <label>App Lock (PIN)</label>
+            <label class="switch">
+              <input type="checkbox" id="applock-switch" />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <!-- Shown when app lock is currently ON -->
+          <div id="applock-manage" class="local-settings hidden">
+            <div class="setting-row api-key-row">
+              <span class="api-key-status">A PIN is set.</span>
+              <button type="button" id="applock-change-btn" class="text-btn">Change PIN</button>
+            </div>
+          </div>
+
+          <!-- Shared form: used both to create a PIN (enabling) and to change one -->
+          <div id="applock-form" class="local-settings hidden">
+            <div class="setting-row hidden" id="applock-current-row">
+              <label>Current PIN</label>
+              <input type="password" id="applock-current-pin" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="••••" />
+            </div>
+            <div class="setting-row">
+              <label id="applock-new-label">Create PIN (4 digits)</label>
+              <input type="password" id="applock-new-pin" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="••••" />
+            </div>
+            <div class="setting-row">
+              <label>Confirm PIN</label>
+              <input type="password" id="applock-confirm-pin" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="••••" />
+            </div>
+            <div class="setting-row api-key-row">
+              <span id="applock-form-status" class="api-key-status"></span>
+              <div class="applock-form-actions">
+                <button type="button" id="applock-cancel-btn" class="text-btn">Cancel</button>
+                <button type="button" id="applock-confirm-btn" class="text-btn text-btn-confirm">Confirm</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shown to confirm turning app lock OFF -->
+          <div id="applock-disable-form" class="local-settings hidden">
+            <div class="setting-row">
+              <label>Enter current PIN to turn off App Lock</label>
+              <input type="password" id="applock-disable-pin" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="••••" />
+            </div>
+            <div class="setting-row api-key-row">
+              <span id="applock-disable-status" class="api-key-status"></span>
+              <div class="applock-form-actions">
+                <button type="button" id="applock-disable-cancel-btn" class="text-btn">Cancel</button>
+                <button type="button" id="applock-disable-confirm-btn" class="text-btn text-btn-danger">Disable</button>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
       <div class="settings-footer">
         <span id="settings-save-status"></span>
         <button id="settings-save-btn">Save</button>
       </div>
+    </div>
+  </div>
+
+  <!-- APP LOCK SCREEN -->
+  <div id="lock-screen" class="lock-screen hidden">
+    <div class="lock-card">
+      <div class="lock-title">Enter app lock PIN</div>
+      <div class="pin-boxes" id="pin-boxes">
+        <div class="pin-box" data-index="0"></div>
+        <div class="pin-box" data-index="1"></div>
+        <div class="pin-box" data-index="2"></div>
+        <div class="pin-box" data-index="3"></div>
+      </div>
+      <div class="lock-error" id="lock-error">&nbsp;</div>
     </div>
   </div>
 

@@ -2,7 +2,7 @@
   "name": "overzen",
   "version": "0.1.0",
   "description": "A minimal, always-on-top overlay chat client for local and cloud LLMs.",
-  "author": "Your Name <you@example.com>",
+  "author": "Sam bui",
   "license": "MIT",
   "main": "main.js",
   "private": true,

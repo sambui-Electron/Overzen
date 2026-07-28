@@ -17,7 +17,6 @@ const statusText = document.getElementById('status-text');
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
-const refreshBtn = document.getElementById('refresh-models-btn');
 const historyList = document.getElementById('history-list');
 const newChatBtn = document.getElementById('new-chat-btn');
 const overlayBtn = document.getElementById('zen-mode-btn');
@@ -31,7 +30,7 @@ const settingsModal = document.getElementById('settings-modal');
 const settingsCloseBtn = document.getElementById('settings-close-btn');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsSaveStatus = document.getElementById('settings-save-status');
-const themeSwitch = document.getElementById('theme-switch');
+const themeSelect = document.getElementById('theme-select');
 const opacitySlider = document.getElementById('overlay-opacity-slider');
 const opacityValue = document.getElementById('overlay-opacity-value');
 const providerSelect = document.getElementById('provider-select');
@@ -41,9 +40,39 @@ const localPortInput = document.getElementById('local-port-input');
 const cloudSettings = document.getElementById('cloud-settings');
 const cloudBaseUrlInput = document.getElementById('cloud-base-url');
 const cloudModelInput = document.getElementById('cloud-model');
+const cloudModelListSelect = document.getElementById('cloud-model-list');
+const cloudModelListRow = document.getElementById('cloud-model-list-row');
 const cloudApiKeyInput = document.getElementById('cloud-api-key');
 const apiKeyStatus = document.getElementById('api-key-status');
 const clearApiKeyBtn = document.getElementById('clear-api-key-btn');
+
+// APP LOCK DOM ELEMENTS
+const applockSwitch = document.getElementById('applock-switch');
+const applockManage = document.getElementById('applock-manage');
+const applockChangeBtn = document.getElementById('applock-change-btn');
+const applockForm = document.getElementById('applock-form');
+const applockCurrentRow = document.getElementById('applock-current-row');
+const applockCurrentPin = document.getElementById('applock-current-pin');
+const applockNewLabel = document.getElementById('applock-new-label');
+const applockNewPin = document.getElementById('applock-new-pin');
+const applockConfirmPin = document.getElementById('applock-confirm-pin');
+const applockFormStatus = document.getElementById('applock-form-status');
+const applockCancelBtn = document.getElementById('applock-cancel-btn');
+const applockConfirmBtn = document.getElementById('applock-confirm-btn');
+const applockDisableForm = document.getElementById('applock-disable-form');
+const applockDisablePin = document.getElementById('applock-disable-pin');
+const applockDisableStatus = document.getElementById('applock-disable-status');
+const applockDisableCancelBtn = document.getElementById('applock-disable-cancel-btn');
+const applockDisableConfirmBtn = document.getElementById('applock-disable-confirm-btn');
+const lockNowBtn = document.getElementById('lock-now-btn');
+const lockScreen = document.getElementById('lock-screen');
+const pinBoxes = document.querySelectorAll('#pin-boxes .pin-box');
+const lockErrorEl = document.getElementById('lock-error');
+
+let lockStatus = { enabled: false };
+let applockMode = null; // 'enable' | 'change'
+let enteredPin = '';
+const PIN_LENGTH = 4;
 
 let appConfig = {};
 let selectedTheme = 'dark';
@@ -54,7 +83,7 @@ let selectedTheme = 'dark';
 // untouched. This avoids styling the native <select> directly, which is what
 // caused the garbled/noisy rendering inside this app's transparent frameless
 // window.
-function enhanceSelect(selectEl) {
+function enhanceSelect(selectEl, { onRefresh } = {}) {
   const wrapper = document.createElement('div');
   wrapper.className = 'custom-select';
   if (selectEl.id) wrapper.classList.add(`custom-select-for-${selectEl.id}`);
@@ -83,6 +112,25 @@ function enhanceSelect(selectEl) {
 
   function openMenu() {
     menu.innerHTML = '';
+
+    // Refresh lives INSIDE the dropdown itself - a pinned row at the top,
+    // not a separate always-visible button next to the select.
+    if (onRefresh) {
+      const refreshItem = document.createElement('div');
+      refreshItem.className = 'custom-select-refresh-option';
+      refreshItem.innerHTML = '<span class="refresh-icon">⟳</span><span>Refresh models</span>';
+      refreshItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onRefresh();
+        closeMenu();
+      });
+      menu.appendChild(refreshItem);
+
+      const divider = document.createElement('div');
+      divider.className = 'custom-select-divider';
+      menu.appendChild(divider);
+    }
+
     Array.from(selectEl.options).forEach((opt, idx) => {
       const item = document.createElement('div');
       item.className = 'custom-select-option' + (idx === selectEl.selectedIndex ? ' selected' : '');
@@ -111,12 +159,15 @@ function enhanceSelect(selectEl) {
   return { syncLabel };
 }
 
+
 let chatsData = JSON.parse(localStorage.getItem('ollama_chats_history')) || {};
 let currentChatId = null;
 
-const modelSelectUI = enhanceSelect(modelSelect);
+const modelSelectUI = enhanceSelect(modelSelect, { onRefresh: fetchLocalModels });
 const providerSelectUI = enhanceSelect(providerSelect);
 const localRunnerSelectUI = enhanceSelect(localRunnerSelect);
+const cloudModelListUI = enhanceSelect(cloudModelListSelect);
+const themeSelectUI = enhanceSelect(themeSelect);
 
 const DEFAULT_WELCOME = "Hello! Please select a model to start a local conversation.";
 
@@ -345,6 +396,23 @@ function updateAiMessage(msgDiv, rawText, isDone) {
   });
 }
 
+// Renders a friendlier error state in an AI message bubble: a plain-language
+// explanation of what went wrong, followed by a short, concrete tip on what
+// to do next. This replaces bare/technical error strings with something a
+// non-technical user can actually act on.
+function renderErrorReply(msgDiv, explanation, advice) {
+  let answerEl = msgDiv.querySelector('.ai-answer');
+  if (!answerEl) {
+    answerEl = document.createElement('div');
+    answerEl.className = 'ai-answer';
+    msgDiv.appendChild(answerEl);
+  }
+  answerEl.innerHTML = `
+    <p class="error-explanation">${explanation}</p>
+    <div class="error-advice"><strong>Tip:</strong><span>${advice}</span></div>
+  `;
+}
+
 function appendMessage(text, isUser = false) {
   const msgDiv = document.createElement('div');
   msgDiv.className = isUser ? 'message user-message' : 'message ai-message';
@@ -415,7 +483,16 @@ async function handleSendMessage() {
   const selectedModel = modelSelect.value;
 
   if (!text) return;
-  if (provider === 'ollama' && !selectedModel) return;
+  if (provider === 'ollama' && !selectedModel) {
+    appendMessage(text, true);
+    const noModelMsg = appendMessage("");
+    renderErrorReply(
+      noModelMsg,
+      "I don't have a model to talk to yet, so I can't reply to that.",
+      "Pick a model from the dropdown at the top of the sidebar. If the list says \"Offline\" or \"No models\", start Ollama (or your chosen local runner) and click the refresh icon next to Models."
+    );
+    return;
+  }
 
   appendMessage(text, true);
   chatInput.value = '';
@@ -454,8 +531,24 @@ async function handleSendMessage() {
         finalizeAndSave();
       },
       onError: (message) => {
-        const answerEl = aiMessageElement.querySelector('.ai-answer') || aiMessageElement;
-        answerEl.innerText = `Error: ${message}`;
+        const lower = (message || '').toLowerCase();
+        let advice = "Double-check your API key, Base URL, and Model name in Settings \u2192 AI Provider, then try again.";
+        if (lower.includes('no api key')) {
+          advice = "Open Settings \u2192 AI Provider and add an API key for your cloud provider, then click Save.";
+        } else if (lower.includes('401') || lower.includes('unauthorized') || lower.includes('invalid') && lower.includes('key')) {
+          advice = "Your API key may be missing or incorrect. Re-enter it in Settings \u2192 AI Provider and Save.";
+        } else if (lower.includes('404') || lower.includes('model')) {
+          advice = "Check that the Model name in Settings \u2192 AI Provider is spelled correctly and is supported by your Base URL.";
+        } else if (lower.includes('429')) {
+          advice = "You've hit a rate limit or quota. Wait a bit and try again, or check your usage/billing with the provider.";
+        } else if (lower.includes('econnrefused') || lower.includes('network') || lower.includes('fetch failed') || lower.includes('enotfound')) {
+          advice = "Check your internet connection and that the Base URL in Settings \u2192 AI Provider is correct.";
+        }
+        renderErrorReply(
+          aiMessageElement,
+          `I couldn't get a response from the cloud API. The provider said: "${message}"`,
+          advice
+        );
       }
     });
     return;
@@ -491,8 +584,11 @@ async function handleSendMessage() {
     updateAiMessage(aiMessageElement, fullAiResponse, true);
     finalizeAndSave();
   } catch (error) {
-    const answerEl = aiMessageElement.querySelector('.ai-answer') || aiMessageElement;
-    answerEl.innerText = "Error connecting to model.";
+    renderErrorReply(
+      aiMessageElement,
+      "I couldn't reach the local model runner, so I can't respond right now.",
+      `Make sure your local runner (e.g. Ollama) is running on port ${(appConfig && appConfig.localPort) || DEFAULT_LOCAL_PORT}, then click the refresh icon next to Models and try again.`
+    );
   }
 }
 
@@ -500,7 +596,6 @@ async function handleSendMessage() {
 sendBtn.addEventListener('click', handleSendMessage);
 chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } });
 chatInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
-refreshBtn.addEventListener('click', fetchLocalModels);
 newChatBtn.addEventListener('click', startNewChat);
 
 // TOGGLE ZEN MODE EVENTS
@@ -529,25 +624,77 @@ function updateSliderFill(slider) {
   const max = Number(slider.max) || 100;
   const val = Number(slider.value);
   const pct = ((val - min) / (max - min)) * 100;
-  const isLight = document.body.classList.contains('light-theme');
-  const fillColor = isLight ? '#18181b' : '#f4f4f5';
-  const trackColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.12)';
-  slider.style.setProperty('--slider-fill', `linear-gradient(to right, ${fillColor} 0%, ${fillColor} ${pct}%, ${trackColor} ${pct}%, ${trackColor} 100%)`);
+
+  const wrapper = slider.closest('.custom-slider');
+  if (!wrapper) return;
+  const fill = wrapper.querySelector('.custom-slider-fill');
+  const thumb = wrapper.querySelector('.custom-slider-thumb');
+  if (fill) fill.style.width = `${pct}%`;
+  if (thumb) thumb.style.left = `${pct}%`;
 }
 
+// theme is one of 'dark' | 'light' | 'mocha'
 function applyTheme(theme) {
   document.body.classList.toggle('light-theme', theme === 'light');
+  document.body.classList.toggle('mocha-theme', theme === 'mocha');
   const darkSheet = document.getElementById('hljs-theme-dark');
   const lightSheet = document.getElementById('hljs-theme-light');
   if (darkSheet && lightSheet) {
+    // Mocha reuses the dark highlight.js sheet - only true Light gets the light one.
     darkSheet.disabled = theme === 'light';
     lightSheet.disabled = theme !== 'light';
   }
 }
 
 function setThemeButtons(theme) {
-  themeSwitch.checked = theme === 'dark';
+  themeSelect.value = theme;
+  themeSelectUI.syncLabel();
 }
+
+// Pulls the history of previously-used cloud model names from persisted
+// config storage and shows them as a pickable list, so switching to Cloud
+// API surfaces what's already been used instead of an empty text field.
+async function populateCloudModelsList() {
+  let savedModels = [];
+  try {
+    savedModels = await window.api.getCloudModels();
+  } catch (err) {
+    savedModels = [];
+  }
+
+  cloudModelListSelect.innerHTML = '';
+
+  if (!savedModels || savedModels.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.innerText = 'No saved models yet';
+    cloudModelListSelect.appendChild(opt);
+    cloudModelListRow.classList.add('hidden');
+  } else {
+    savedModels.forEach((name) => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.innerText = name;
+      cloudModelListSelect.appendChild(opt);
+    });
+    cloudModelListRow.classList.remove('hidden');
+
+    // Reflect whatever is currently in the Model text field, if it's one
+    // of the saved entries, so the two controls stay in sync on open.
+    const currentIdx = savedModels.indexOf(cloudModelInput.value.trim());
+    cloudModelListSelect.selectedIndex = currentIdx >= 0 ? currentIdx : 0;
+  }
+
+  cloudModelListUI.syncLabel();
+}
+
+// Picking a saved model fills the editable Model field with it (kept as a
+// separate control so the user can still type a brand-new model name).
+cloudModelListSelect.addEventListener('change', () => {
+  if (cloudModelListSelect.value) {
+    cloudModelInput.value = cloudModelListSelect.value;
+  }
+});
 
 async function populateSettingsForm() {
   const config = await window.api.getConfig();
@@ -574,6 +721,15 @@ async function populateSettingsForm() {
   cloudModelInput.value = config.cloudModel || '';
   cloudApiKeyInput.value = '';
   apiKeyStatus.innerText = config.hasApiKey ? 'A key is saved.' : 'No key saved.';
+  if (providerSelect.value === 'cloud') {
+    populateCloudModelsList();
+  }
+
+  lockStatus = await window.api.lock.status();
+  applockSwitch.checked = lockStatus.enabled;
+  applockManage.classList.toggle('hidden', !lockStatus.enabled);
+  resetApplockForms();
+  syncLockButtonVisibility();
 }
 
 function openSettingsModal() {
@@ -586,6 +742,9 @@ function closeSettingsModal() {
   cloudApiKeyInput.value = '';
   // revert any live theme preview that wasn't saved
   applyTheme(appConfig.theme || 'dark');
+  // discard any half-finished PIN entry and restore the switch to the real state
+  resetApplockForms();
+  applockSwitch.checked = lockStatus.enabled;
 }
 
 settingsBtn.addEventListener('click', openSettingsModal);
@@ -594,8 +753,8 @@ settingsModal.addEventListener('click', (e) => {
   if (e.target === settingsModal) closeSettingsModal();
 });
 
-themeSwitch.addEventListener('change', () => {
-  selectedTheme = themeSwitch.checked ? 'dark' : 'light';
+themeSelect.addEventListener('change', () => {
+  selectedTheme = themeSelect.value;
   applyTheme(selectedTheme); // live preview, confirmed on Save
   updateSliderFill(opacitySlider);
 });
@@ -610,6 +769,12 @@ opacitySlider.addEventListener('input', () => {
 providerSelect.addEventListener('change', () => {
   cloudSettings.classList.toggle('hidden', providerSelect.value !== 'cloud');
   localSettings.classList.toggle('hidden', providerSelect.value !== 'ollama');
+
+  // Switching to Cloud API: pull the saved-model history from storage so
+  // the user can pick a previously-used model instead of retyping it.
+  if (providerSelect.value === 'cloud') {
+    populateCloudModelsList();
+  }
 });
 
 // Picking a runner auto-fills its default port (still editable by the user).
@@ -654,14 +819,196 @@ settingsSaveBtn.addEventListener('click', async () => {
   appConfig = result.config;
   applyTheme(appConfig.theme);
 
+  if (providerSelect.value === 'cloud') {
+    populateCloudModelsList();
+  }
+
   settingsSaveStatus.innerText = 'Saved!';
   settingsSaveStatus.classList.add('show');
   setTimeout(() => settingsSaveStatus.classList.remove('show'), 1500);
 });
 
+// ---------- APP LOCK: LOCK SCREEN ----------
+function renderPinBoxes() {
+  pinBoxes.forEach((box, i) => {
+    box.classList.toggle('filled', i < enteredPin.length);
+    box.classList.toggle('active', i === enteredPin.length);
+  });
+}
+
+// Keeps the sidebar "Lock" button in sync with whether App Lock is on,
+// the instant it's toggled - not just the next time settings are reopened.
+function syncLockButtonVisibility() {
+  lockNowBtn.classList.toggle('hidden', !lockStatus.enabled);
+}
+
+function showLockScreen() {
+  enteredPin = '';
+  lockErrorEl.innerText = '\u00A0';
+  renderPinBoxes();
+  lockScreen.classList.remove('hidden');
+}
+
+function hideLockScreen() {
+  enteredPin = '';
+  renderPinBoxes();
+  lockScreen.classList.add('hidden');
+}
+
+async function attemptUnlock() {
+  if (enteredPin.length !== PIN_LENGTH) return;
+  const pinToCheck = enteredPin;
+  const result = await window.api.lock.verify(pinToCheck);
+  if (result && result.success) {
+    hideLockScreen();
+  } else {
+    lockErrorEl.innerText = 'Incorrect PIN';
+    enteredPin = '';
+    renderPinBoxes();
+    lockScreen.classList.add('shake');
+    setTimeout(() => lockScreen.classList.remove('shake'), 350);
+  }
+}
+
+function handlePinInput(digit) {
+  if (enteredPin.length >= PIN_LENGTH) return;
+  enteredPin += digit;
+  lockErrorEl.innerText = '\u00A0';
+  renderPinBoxes();
+  if (enteredPin.length === PIN_LENGTH) {
+    // brief pause so the last box visibly fills before we verify
+    setTimeout(attemptUnlock, 150);
+  }
+}
+
+function handlePinBackspace() {
+  enteredPin = enteredPin.slice(0, -1);
+  lockErrorEl.innerText = '\u00A0';
+  renderPinBoxes();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (lockScreen.classList.contains('hidden')) return;
+  if (e.key >= '0' && e.key <= '9') {
+    handlePinInput(e.key);
+  } else if (e.key === 'Backspace') {
+    handlePinBackspace();
+  } else if (e.key === 'Enter') {
+    attemptUnlock();
+  }
+});
+
+lockNowBtn.addEventListener('click', () => {
+  if (lockStatus.enabled) showLockScreen();
+});
+
+// ---------- APP LOCK: SETTINGS PANEL ----------
+function resetApplockForms() {
+  applockForm.classList.add('hidden');
+  applockDisableForm.classList.add('hidden');
+  applockFormStatus.innerText = '';
+  applockDisableStatus.innerText = '';
+  applockCurrentPin.value = '';
+  applockNewPin.value = '';
+  applockConfirmPin.value = '';
+  applockDisablePin.value = '';
+}
+
+function openApplockForm(mode) {
+  applockMode = mode;
+  resetApplockForms();
+  applockForm.classList.remove('hidden');
+  applockCurrentRow.classList.toggle('hidden', mode !== 'change');
+  applockNewLabel.innerText = mode === 'change' ? 'New PIN (4 digits)' : 'Create PIN (4 digits)';
+}
+
+function openApplockDisableForm() {
+  resetApplockForms();
+  applockDisableForm.classList.remove('hidden');
+}
+
+applockSwitch.addEventListener('change', () => {
+  if (applockSwitch.checked) {
+    openApplockForm('enable');
+  } else {
+    applockSwitch.checked = true; // stays visually on until the PIN is confirmed
+    openApplockDisableForm();
+  }
+});
+
+applockChangeBtn.addEventListener('click', () => openApplockForm('change'));
+
+applockCancelBtn.addEventListener('click', () => {
+  applockForm.classList.add('hidden');
+  applockSwitch.checked = lockStatus.enabled;
+});
+
+applockConfirmBtn.addEventListener('click', async () => {
+  const newPin = applockNewPin.value.trim();
+  const confirmPin = applockConfirmPin.value.trim();
+
+  if (!/^\d{4}$/.test(newPin)) {
+    applockFormStatus.innerText = 'PIN must be exactly 4 digits.';
+    return;
+  }
+  if (newPin !== confirmPin) {
+    applockFormStatus.innerText = 'PINs do not match.';
+    return;
+  }
+
+  if (applockMode === 'enable') {
+    const result = await window.api.lock.enable(newPin);
+    if (result.success) {
+      lockStatus.enabled = true;
+      applockSwitch.checked = true;
+      applockManage.classList.remove('hidden');
+      applockForm.classList.add('hidden');
+      syncLockButtonVisibility();
+    } else {
+      applockFormStatus.innerText = result.error || 'Failed to enable App Lock.';
+    }
+  } else if (applockMode === 'change') {
+    const currentPin = applockCurrentPin.value.trim();
+    const result = await window.api.lock.changePin(currentPin, newPin);
+    if (result.success) {
+      applockForm.classList.add('hidden');
+      settingsSaveStatus.innerText = 'PIN updated!';
+      settingsSaveStatus.classList.add('show');
+      setTimeout(() => settingsSaveStatus.classList.remove('show'), 1500);
+    } else {
+      applockFormStatus.innerText = result.error || 'Incorrect current PIN.';
+    }
+  }
+});
+
+applockDisableCancelBtn.addEventListener('click', () => {
+  applockDisableForm.classList.add('hidden');
+  applockSwitch.checked = true;
+});
+
+applockDisableConfirmBtn.addEventListener('click', async () => {
+  const pin = applockDisablePin.value.trim();
+  const result = await window.api.lock.disable(pin);
+  if (result.success) {
+    lockStatus.enabled = false;
+    applockSwitch.checked = false;
+    applockManage.classList.add('hidden');
+    applockDisableForm.classList.add('hidden');
+    syncLockButtonVisibility();
+  } else {
+    applockDisableStatus.innerText = result.error || 'Incorrect PIN.';
+  }
+});
+
 async function initConfig() {
   appConfig = await window.api.getConfig();
   applyTheme(appConfig.theme || 'dark');
+
+  lockStatus = await window.api.lock.status();
+  syncLockButtonVisibility();
+  if (lockStatus.enabled) {
+    showLockScreen();
+  }
 }
 
 window.addEventListener('DOMContentLoaded', async () => {

@@ -23,9 +23,20 @@ contextBridge.exposeInMainWorld('api', {
   setConfig: (cfg) => ipcRenderer.invoke('config:set', cfg),
   setApiKey: (plainKey) => ipcRenderer.invoke('config:setApiKey', plainKey),
   clearApiKey: () => ipcRenderer.invoke('config:clearApiKey'),
+  getCloudModels: () => ipcRenderer.invoke('cloud:getModels'),
 
   // live overlay opacity preview while dragging the slider
   previewOverlayOpacity: (value) => ipcRenderer.send('overlay:preview-opacity', value),
+
+  // app lock (PIN) - only ever verified in main; the PIN itself never
+  // touches disk in plaintext and this API never returns it
+  lock: {
+    status: () => ipcRenderer.invoke('lock:status'),
+    verify: (pin) => ipcRenderer.invoke('lock:verify', pin),
+    enable: (newPin) => ipcRenderer.invoke('lock:enable', newPin),
+    disable: (currentPin) => ipcRenderer.invoke('lock:disable', currentPin),
+    changePin: (currentPin, newPin) => ipcRenderer.invoke('lock:changePin', { currentPin, newPin })
+  },
 
   // cloud AI streaming - key never touches the renderer
   cloudChat: (prompt, model, { onChunk, onDone, onError }) => {
