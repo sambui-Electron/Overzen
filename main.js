@@ -13,6 +13,7 @@ const defaultConfig = {
   overlayOpacity: 0.8,        // 0.2 - 1.0
   startMaximized: true,
   apiProvider: 'ollama',      // 'ollama' | 'cloud'
+  shortenModelNames: false,   // strip ":" and everything after it from local model display names
   cloudApiBaseUrl: 'https://api.openai.com/v1',
   cloudModel: 'gpt-4o-mini',
   cloudModels: [],            // history of cloud model names the user has used, newest last

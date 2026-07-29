@@ -37,6 +37,7 @@ const providerSelect = document.getElementById('provider-select');
 const localSettings = document.getElementById('local-settings');
 const localRunnerSelect = document.getElementById('local-runner-select');
 const localPortInput = document.getElementById('local-port-input');
+const shortenModelNamesSwitch = document.getElementById('shorten-model-names-switch');
 const cloudSettings = document.getElementById('cloud-settings');
 const cloudBaseUrlInput = document.getElementById('cloud-base-url');
 const cloudModelInput = document.getElementById('cloud-model');
@@ -171,6 +172,29 @@ const themeSelectUI = enhanceSelect(themeSelect);
 
 const DEFAULT_WELCOME = "Hello! Please select a model to start a local conversation.";
 
+// Title-cases a model name for display purposes only (e.g. "llama3.1" ->
+// "Llama3.1", "deepseek-r1" -> "Deepseek-R1"). Operates on each run of
+// word characters independently so punctuation like "." "-" "_" stays put.
+function toTitleCase(str) {
+  return str.replace(/[A-Za-z0-9]+/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+}
+
+// When the "Automatically shorten model name" setting is on, strips the
+// ":" and everything after it (e.g. Ollama tags like "llama3.1:8b" -> "llama3.1").
+function shortenModelName(name) {
+  if (appConfig && appConfig.shortenModelNames) {
+    const idx = name.indexOf(':');
+    if (idx !== -1) return name.slice(0, idx);
+  }
+  return name;
+}
+
+// Builds the display label shown in the Model dropdown from a raw model
+// name: optionally shortens it (settings toggle), then title-cases it.
+function formatModelDisplayName(name) {
+  return toTitleCase(shortenModelName(name));
+}
+
 async function fetchLocalModels() {
   try {
     statusText.innerText = "Scanning";
@@ -185,7 +209,7 @@ async function fetchLocalModels() {
         const option = document.createElement('option');
         option.value = model.name;
         const sizeGb = (model.size / (1024 * 1024 * 1024)).toFixed(2);
-        option.innerText = `${model.name} (${sizeGb}GB)`;
+        option.innerText = `${formatModelDisplayName(model.name)} (${sizeGb}GB)`;
         modelSelect.appendChild(option);
       });
       statusText.innerText = "Online";
@@ -716,6 +740,7 @@ async function populateSettingsForm() {
   localRunnerSelect.value = config.localRunner || 'ollama';
   localRunnerSelectUI.syncLabel();
   localPortInput.value = config.localPort || DEFAULT_LOCAL_PORT;
+  shortenModelNamesSwitch.checked = !!config.shortenModelNames;
 
   cloudBaseUrlInput.value = config.cloudApiBaseUrl || '';
   cloudModelInput.value = config.cloudModel || '';
@@ -798,6 +823,7 @@ clearApiKeyBtn.addEventListener('click', async () => {
 
 settingsSaveBtn.addEventListener('click', async () => {
   const overlayOpacity = Number(opacitySlider.value) / 100;
+  const shortenModelNamesChanged = !!appConfig.shortenModelNames !== shortenModelNamesSwitch.checked;
 
   const result = await window.api.setConfig({
     theme: selectedTheme,
@@ -805,6 +831,7 @@ settingsSaveBtn.addEventListener('click', async () => {
     apiProvider: providerSelect.value,
     localRunner: localRunnerSelect.value,
     localPort: Number(localPortInput.value) || DEFAULT_LOCAL_PORT,
+    shortenModelNames: shortenModelNamesSwitch.checked,
     cloudApiBaseUrl: cloudBaseUrlInput.value.trim(),
     cloudModel: cloudModelInput.value.trim()
   });
@@ -821,6 +848,18 @@ settingsSaveBtn.addEventListener('click', async () => {
 
   if (providerSelect.value === 'cloud') {
     populateCloudModelsList();
+  }
+
+  // Re-render the local model dropdown's labels immediately if the
+  // shorten-name preference changed, instead of waiting for the next refresh.
+  if (shortenModelNamesChanged) {
+    Array.from(modelSelect.options).forEach((opt) => {
+      if (!opt.value) return;
+      const sizeMatch = opt.innerText.match(/\(([^)]+)\)\s*$/);
+      const sizeSuffix = sizeMatch ? ` (${sizeMatch[1]})` : '';
+      opt.innerText = `${formatModelDisplayName(opt.value)}${sizeSuffix}`;
+    });
+    modelSelectUI.syncLabel();
   }
 
   settingsSaveStatus.innerText = 'Saved!';
