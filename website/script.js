@@ -8,10 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         })
     }, {
-        threshold: 0.9
+        threshold: 0.4
     });
-    const heroElement = document.querySelector('.hero');
-    if (heroElement) {
-        observer.observe(heroElement);
-    }
+
+    document.querySelectorAll('.hero, .reveal').forEach(el => observer.observe(el));
 });
