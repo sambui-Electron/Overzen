@@ -1,0 +1,89 @@
+body {
+    margin: 0;
+    background-color: #1e1e1e; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.hero {
+    text-align: center;
+    max-width: 700px;
+    padding: 20px;
+    
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero.play-animation {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hero-logo {
+    width: 80px ;
+    height: auto;
+    padding: 0;
+    border-radius: 12px;
+}
+
+
+.hero-title {
+    font-family: 'Junicode', Georgia, serif;
+    font-size: 5rem;          
+    font-weight: 400;           
+    line-height: 1.15;
+    color: #d9d9cb;             
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+}
+
+.hero-title2{
+    font-family: 'Junicode', Georgia, serif;
+    font-size: 3.5rem;          
+    font-weight: 400;           
+    line-height: 1.15;
+    color: #d9d9cb;             
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+}
+
+.hero-title2 .highlight-text {
+    font-family: 'Junicode', Georgia, serif;
+    font-style: italic;         
+    color: #ff6b57;             
+}
+
+
+@media (max-width: 600px) {
+    .hero-title {
+        font-size: 2.3rem;
+    }
+    .hero-description {
+        font-size: 0.95rem;
+    }
+}
+
+.nav-bar {
+    font-family: 'Junicode', Georgia, serif;
+    font-size: 1rem;          
+    font-weight: 400;           
+    line-height: 1.15;
+    color: #d9d9cb;             
+    letter-spacing: -0.5px;
+
+    margin-bottom: auto; 
+    width: 100%; 
+    text-align: right; 
+    padding: 20px; 
+    box-sizing: border-box;
+    display: flex;
+    justify-content: flex-start;
+}
