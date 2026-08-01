@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sambui-electron.github.io/Overzen/sitemap.xml
