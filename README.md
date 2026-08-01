@@ -1,5 +1,23 @@
+<div align="center">
+
+<img src="website/img/Logo.png" width="88" alt="Overzen logo">
+
 # Overzen
 
+**AI, but calmer.**
+
+A small, always-on-top overlay window for talking to local and cloud AI models without breaking focus.
+
+[![Stars](https://img.shields.io/github/stars/sambui-Electron/Overzen?style=flat-square&color=ff6b57&labelColor=1e1e1e)](https://github.com/sambui-Electron/Overzen/stargazers)
+[![License](https://img.shields.io/github/license/sambui-Electron/Overzen?style=flat-square&color=ff6b57&labelColor=1e1e1e)](https://github.com/sambui-Electron/Overzen/blob/main/LICENSE)
+[![Website](https://img.shields.io/badge/website-live-ff6b57?style=flat-square&labelColor=1e1e1e)](https://sambui-electron.github.io/Overzen/)
+
+[**Live site**](https://sambui-electron.github.io/Overzen/) · [**Download for Windows**](https://github.com/sambui-Electron/Overzen/releases)
+
+</div>
+> A small, always-on-top overlay window for talking to local and cloud AI models without breaking focus.
+
+🔗 **[Live site](https://sambui-electron.github.io/Overzen/)** · 📥 [Download for Windows](https://github.com/sambui-Electron/Overzen/releases)
 **Overzen** is an open-source web user interface (Web UI) that serves as a highly flexible graphical user interface (GUI) container for AI models.
 
 ## ✨ Features
