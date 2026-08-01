@@ -19,26 +19,38 @@
         <nav class="nav-links">
             <a href="#preview">How it floats</a>
             <a href="#features">Features</a>
-            <a href="#download" class="nav-cta">Downloads</a>
+            <a href="#faq">FAQ</a>
+            <a href="#download" class="nav-cta">Download</a>
         </nav>
     </header>
 
     <div class="hero" id="top">
-        <h1 class="hero-title">Overzen</h1>
-        <img class="hero-logo" src="./img/Logo.png" alt="Overzen logo">
+        <div class="hero-glow" aria-hidden="true"></div>
+
+        <div class="hero-brand">
+            <img class="hero-logo" src="./img/Logo.png" alt="">
+            <span class="hero-wordmark">Overzen</span>
+        </div>
+
+        <p class="hero-eyebrow">Overlay chat for local &amp; cloud AI</p>
+
         <h1 class="hero-title2">
             AI, but <br>
-            <span class="highlight-text">calmer</span>
+            <span class="highlight-text">calmer.</span>
         </h1>
+
         <p class="hero-subtext">
             A small window that sits quietly on top of whatever you're doing —
             for talking to local models or your own cloud API, without ever
             leaving your desktop.
         </p>
+
         <div class="hero-actions">
-            <a href="#download" class="btn-primary">Downloads</a>
+            <a href="#download" class="btn-primary">Download for Windows</a>
             <a href="#preview" class="btn-ghost">See it in place ↓</a>
         </div>
+
+        <p class="hero-trust">Free · MIT licensed · Windows today, more platforms soon</p>
     </div>
 
     <section class="preview-section reveal" id="preview">
@@ -165,10 +177,115 @@
         </div>
     </section>
 
+    <section class="faq reveal" id="faq">
+        <p class="eyebrow center">Before you ask</p>
+        <h2 class="section-title">Questions, answered</h2>
+
+        <div class="faq-list">
+            <details class="faq-item">
+                <summary>Does Overzen send my data anywhere?</summary>
+                <p>
+                    Not by default. Local models run entirely through Ollama,
+                    LM Studio, llama.cpp, or Jan on your own machine, and
+                    nothing leaves it. If you switch to a cloud provider,
+                    only the messages you send go out — straight to that
+                    provider's API, using your own key.
+                </p>
+            </details>
+
+            <details class="faq-item">
+                <summary>Is Overzen free?</summary>
+                <p>
+                    Yes. It's MIT licensed and free to download and use — no
+                    account, subscription, or sign-up required.
+                </p>
+            </details>
+
+            <details class="faq-item">
+                <summary>Do I need Ollama to use it?</summary>
+                <p>
+                    No. Ollama is just the default — you can point Overzen at
+                    LM Studio, llama.cpp Server, Jan, or a custom local
+                    runner instead, or skip local models entirely and use a
+                    cloud API.
+                </p>
+            </details>
+
+            <details class="faq-item">
+                <summary>What happens to my cloud API key?</summary>
+                <p>
+                    It's encrypted with your operating system's own
+                    credential storage before it ever touches disk. The app
+                    only ever knows whether a key is saved — it can't
+                    display the key back to you, and your prompts are
+                    proxied out to the provider without the key ever
+                    reaching the visible window.
+                </p>
+            </details>
+
+            <details class="faq-item">
+                <summary>Is my chat history stored anywhere online?</summary>
+                <p>
+                    No. Conversations are saved locally on your device only,
+                    so they're there the next time you open the app and
+                    nowhere else.
+                </p>
+            </details>
+
+            <details class="faq-item">
+                <summary>What is Zen Mode?</summary>
+                <p>
+                    A one-click way to shrink the window down to a small,
+                    borderless, always-on-top pane you can drag anywhere and
+                    fade with the transparency slider — for glancing at a
+                    reply without covering what you're working on.
+                </p>
+            </details>
+
+            <details class="faq-item">
+                <summary>Can I lock the app with a PIN?</summary>
+                <p>
+                    Yes. App Lock asks for a 4-digit PIN before the window is
+                    usable. The PIN itself is never stored — only a salted
+                    hash of it — so it can be checked but never recovered or
+                    displayed.
+                </p>
+            </details>
+
+            <details class="faq-item">
+                <summary>What platforms does Overzen support?</summary>
+                <p>
+                    Windows today, packaged as a standard installer. macOS
+                    and Linux builds are on the way.
+                </p>
+            </details>
+        </div>
+    </section>
+
     <section class="cta reveal" id="download">
         <h2>Ready when you are.</h2>
         <p>Free for Windows. macOS and Linux builds are on the way.</p>
-        <a href="#" class="btn-primary">Download for Windows</a>
+        <div class="cta-actions">
+            <a href="https://github.com/sambui-Electron/Overzen/releases" class="btn-primary">Download for Windows</a>
+            <a href="https://github.com/sambui-Electron/Overzen" class="github-badge" id="github-star-badge" target="_blank" rel="noopener">
+                <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                        0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                        -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07
+                        -1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27
+                        2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15
+                        0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38
+                        A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+                </svg>
+                <span>Star on GitHub</span>
+                <span class="github-star-count" id="github-star-count" aria-live="polite">
+                    <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                        <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/>
+                    </svg>
+                    <span id="github-star-value">–</span>
+                </span>
+            </a>
+        </div>
     </section>
 
     <footer class="site-footer">
