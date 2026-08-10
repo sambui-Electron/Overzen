@@ -1,10 +1,29 @@
 // 1. WINDOW CONTROLS & OVERLAY COUPLING
-document.getElementById('close-btn').addEventListener('click', () => window.api.close());
-document.getElementById('min-btn').addEventListener('click', () => window.api.minimize());
-document.getElementById('max-btn').addEventListener('click', () => window.api.maximizeToggle());
+// Two control sets share the same actions: the macOS-style traffic lights
+// (close-btn/min-btn/max-btn) and the minimal Windows-style buttons
+// (win-close-btn/win-min-btn/win-max-btn). Only one set is visible at a
+// time (see applyTitleBarStyle), but both stay wired up.
+function bindWindowControls(closeId, minId, maxId) {
+  const closeEl = document.getElementById(closeId);
+  const minEl = document.getElementById(minId);
+  const maxEl = document.getElementById(maxId);
+  if (closeEl) closeEl.addEventListener('click', () => window.api.close());
+  if (minEl) minEl.addEventListener('click', () => window.api.minimize());
+  if (maxEl) maxEl.addEventListener('click', () => window.api.maximizeToggle());
+}
+bindWindowControls('close-btn', 'min-btn', 'max-btn');
+bindWindowControls('win-close-btn', 'win-min-btn', 'win-max-btn');
 
-window.api.onMaximized(() => document.getElementById('max-btn').classList.add('maximized'));
-window.api.onUnmaximized(() => document.getElementById('max-btn').classList.remove('maximized'));
+window.api.onMaximized(() => {
+  document.getElementById('max-btn').classList.add('maximized');
+  const winMaxBtn = document.getElementById('win-max-btn');
+  if (winMaxBtn) winMaxBtn.classList.add('maximized');
+});
+window.api.onUnmaximized(() => {
+  document.getElementById('max-btn').classList.remove('maximized');
+  const winMaxBtn = document.getElementById('win-max-btn');
+  if (winMaxBtn) winMaxBtn.classList.remove('maximized');
+});
 
 // 2. OLLAMA CONFIGURATION & DOM ELEMENTS
 const DEFAULT_LOCAL_PORT = 11434;
@@ -31,6 +50,7 @@ const settingsCloseBtn = document.getElementById('settings-close-btn');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsSaveStatus = document.getElementById('settings-save-status');
 const themeSelect = document.getElementById('theme-select');
+const macTrafficLightSwitch = document.getElementById('mac-traffic-light-switch');
 const opacitySlider = document.getElementById('overlay-opacity-slider');
 const opacityValue = document.getElementById('overlay-opacity-value');
 const providerSelect = document.getElementById('provider-select');
@@ -583,12 +603,13 @@ async function handleSendMessage() {
     const response = await fetch(`${getOllamaHost()}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: selectedModel, prompt: text, stream: true })
+      body: JSON.stringify({ model: selectedModel, prompt: text, stream: true, think: true })
     });
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    
+    let fullThinking = "";
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -597,15 +618,26 @@ async function handleSendMessage() {
       for (const line of lines) {
         if (line.trim() !== '') {
           const parsed = JSON.parse(line);
+          if (parsed.thinking) {
+            fullThinking += parsed.thinking;
+          }
           if (parsed.response) {
             fullAiResponse += parsed.response;
-            updateAiMessage(aiMessageElement, fullAiResponse, false);
+          }
+          if (parsed.thinking || parsed.response) {
+            const combined = fullThinking
+              ? `<think>${fullThinking}</think>${fullAiResponse}`
+              : fullAiResponse;
+            updateAiMessage(aiMessageElement, combined, false);
             chatMessages.scrollTop = chatMessages.scrollHeight;
           }
         }
       }
     }
-    updateAiMessage(aiMessageElement, fullAiResponse, true);
+    const finalCombined = fullThinking
+      ? `<think>${fullThinking}</think>${fullAiResponse}`
+      : fullAiResponse;
+    updateAiMessage(aiMessageElement, finalCombined, true);
     finalizeAndSave();
   } catch (error) {
     renderErrorReply(
@@ -670,6 +702,17 @@ function applyTheme(theme) {
   }
 }
 
+// Swaps between macOS-style traffic lights (left side, colored circles) and
+// a minimal Windows-style control set (right side, thin icon buttons). Both
+// sets are custom-drawn - this never touches the OS's native title bar.
+function applyTitleBarStyle(useMac) {
+  document.body.classList.toggle('win-titlebar', !useMac);
+  const macControls = document.getElementById('window-controls-mac');
+  const winControls = document.getElementById('window-controls-win');
+  if (macControls) macControls.classList.toggle('hidden', !useMac);
+  if (winControls) winControls.classList.toggle('hidden', !!useMac);
+}
+
 function setThemeButtons(theme) {
   themeSelect.value = theme;
   themeSelectUI.syncLabel();
@@ -727,6 +770,8 @@ async function populateSettingsForm() {
   selectedTheme = config.theme || 'dark';
   setThemeButtons(selectedTheme);
 
+  macTrafficLightSwitch.checked = !!config.macTrafficLight;
+
   const pct = Math.round((config.overlayOpacity || 0.8) * 100);
   opacitySlider.value = pct;
   opacityValue.innerText = `${pct}%`;
@@ -767,6 +812,7 @@ function closeSettingsModal() {
   cloudApiKeyInput.value = '';
   // revert any live theme preview that wasn't saved
   applyTheme(appConfig.theme || 'dark');
+  applyTitleBarStyle(appConfig.macTrafficLight);
   // discard any half-finished PIN entry and restore the switch to the real state
   resetApplockForms();
   applockSwitch.checked = lockStatus.enabled;
@@ -782,6 +828,10 @@ themeSelect.addEventListener('change', () => {
   selectedTheme = themeSelect.value;
   applyTheme(selectedTheme); // live preview, confirmed on Save
   updateSliderFill(opacitySlider);
+});
+
+macTrafficLightSwitch.addEventListener('change', () => {
+  applyTitleBarStyle(macTrafficLightSwitch.checked); // live preview, confirmed on Save
 });
 
 opacitySlider.addEventListener('input', () => {
@@ -827,6 +877,7 @@ settingsSaveBtn.addEventListener('click', async () => {
 
   const result = await window.api.setConfig({
     theme: selectedTheme,
+    macTrafficLight: macTrafficLightSwitch.checked,
     overlayOpacity,
     apiProvider: providerSelect.value,
     localRunner: localRunnerSelect.value,
@@ -845,6 +896,7 @@ settingsSaveBtn.addEventListener('click', async () => {
 
   appConfig = result.config;
   applyTheme(appConfig.theme);
+  applyTitleBarStyle(appConfig.macTrafficLight);
 
   if (providerSelect.value === 'cloud') {
     populateCloudModelsList();
@@ -1042,6 +1094,7 @@ applockDisableConfirmBtn.addEventListener('click', async () => {
 async function initConfig() {
   appConfig = await window.api.getConfig();
   applyTheme(appConfig.theme || 'dark');
+  applyTitleBarStyle(appConfig.macTrafficLight);
 
   lockStatus = await window.api.lock.status();
   syncLockButtonVisibility();

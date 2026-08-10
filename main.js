@@ -10,6 +10,7 @@ const configPath = path.join(app.getPath('userData'), 'config.json');
 
 const defaultConfig = {
   theme: 'dark',              // 'dark' | 'light'
+  macTrafficLight: false,     // false = minimal Windows-style controls (right side); true = macOS traffic lights (left side)
   overlayOpacity: 0.8,        // 0.2 - 1.0
   startMaximized: true,
   apiProvider: 'ollama',      // 'ollama' | 'cloud'

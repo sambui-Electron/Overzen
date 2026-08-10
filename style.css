@@ -949,11 +949,9 @@ body.light-theme .settings-footer { border-top-color: rgba(0,0,0,0.06); }
    ========================================================================== */
 .thoughts-dropdown {
   margin-bottom: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.02);
-  max-width: 420px;
+  max-width: 480px;
+  /* No border, no background panel - this should never read as a card,
+     just a quiet aside that sits above the real answer. */
 }
 
 .thoughts-toggle {
@@ -961,19 +959,22 @@ body.light-theme .settings-footer { border-top-color: rgba(0,0,0,0.06); }
   align-items: center;
   gap: 6px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 0;
   background: transparent;
   border: none;
-  color: #71717a;
+  color: #4b4b52;
   font-size: 11px;
   cursor: pointer;
   text-align: left;
+  opacity: 0.8;
+  transition: opacity 0.15s ease, color 0.15s ease;
 }
-.thoughts-toggle:hover { color: #a1a1aa; }
+.thoughts-toggle:hover { color: #71717a; opacity: 1; }
 
 .thoughts-toggle .chevron {
   transition: transform 0.15s ease;
-  font-size: 9px;
+  font-size: 8px;
+  opacity: 0.55;
 }
 
 .thoughts-dropdown.open .chevron {
@@ -982,26 +983,25 @@ body.light-theme .settings-footer { border-top-color: rgba(0,0,0,0.06); }
 
 .thoughts-content {
   display: none;
-  padding: 0 12px 12px 12px;
+  padding: 8px 0 0 1px;
   font-size: 12px;
-  line-height: 1.5;
-  color: #71717a;
+  font-style: italic;
+  line-height: 1.6;
+  /* Sits just barely above the #141416 chat background - present, but
+     clearly not the "real" text of the reply. */
+  color: #45454b;
   white-space: pre-wrap;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
   max-height: 240px;
   overflow-y: auto;
 }
 
 .thoughts-dropdown.open .thoughts-content {
   display: block;
-  padding-top: 10px;
 }
 
-body.light-theme .thoughts-dropdown {
-  background: rgba(0, 0, 0, 0.02);
-  border-color: rgba(0,0,0,0.06);
-}
-body.light-theme .thoughts-content { color: #52525b; }
+body.light-theme .thoughts-toggle { color: #b4b4b9; }
+body.light-theme .thoughts-toggle:hover { color: #8a8a90; }
+body.light-theme .thoughts-content { color: #b8b8bd; }
 
 /* ==========================================================================
    9. MARKDOWN RENDERING INSIDE AI RESPONSES
@@ -1759,13 +1759,9 @@ body.mocha-theme .text-btn-confirm:hover { color: #94e2ac; }
 body.mocha-theme .text-btn-danger { color: #f38ba8; }
 body.mocha-theme .text-btn-danger:hover { color: #eba0ac; }
 
-body.mocha-theme .thoughts-dropdown {
-  background: rgba(205, 214, 244, 0.03);
-  border-color: rgba(205, 214, 244, 0.07);
-}
-body.mocha-theme .thoughts-toggle { color: #a6adc8; }
-body.mocha-theme .thoughts-toggle:hover { color: #cdd6f4; }
-body.mocha-theme .thoughts-content { color: #a6adc8; border-top-color: rgba(205, 214, 244, 0.05); }
+body.mocha-theme .thoughts-toggle { color: #585b70; }
+body.mocha-theme .thoughts-toggle:hover { color: #a6adc8; }
+body.mocha-theme .thoughts-content { color: #4b4d63; }
 
 body.mocha-theme .ai-answer h4 { color: #a6adc8; }
 body.mocha-theme .ai-answer strong { color: #f5e0dc; }
@@ -1897,3 +1893,4 @@ body.mocha-theme .pin-box { border-color: rgba(205, 214, 244, 0.28); }
 body.mocha-theme .pin-box::before { background: #cba6f7; }
 body.mocha-theme .pin-box.active { border-color: rgba(203, 166, 247, 0.7); }
 body.mocha-theme .lock-error { color: #f38ba8; }
+
