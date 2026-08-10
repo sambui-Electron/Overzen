@@ -26,7 +26,7 @@ html, body {
 }
 
 /* ==========================================================================
-   2. CUSTOM TITLE BAR & BRIGHT MACOS TRAFFIC LIGHTS
+   2. CUSTOM TITLE BAR - MACOS TRAFFIC LIGHTS + WINDOWS-STYLE CONTROLS
    ========================================================================== */
 .custom-title-bar {
   display: flex;
@@ -38,7 +38,7 @@ html, body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   user-select: none;
   position: relative;
-  z-index: 600; /* stays above the lock screen (z-index 500) so close/min/max remain usable while locked */
+  z-index: 600;
 }
 
 .title {
@@ -47,32 +47,67 @@ html, body {
   text-align: center;
   font-size: 11px;
   letter-spacing: 0.5px;
-  color: #52525b;
-  padding-right: 60px; 
+  color:  #343435;;
+  padding-right: 60px;
 }
 
 .window-controls {
   display: flex;
-  gap: 8px;
   align-items: center;
   -webkit-app-region: no-drag;
 }
 
-.btn {
+/* ---- macOS traffic lights ---- */
+.window-controls-mac {
+  gap: 8px;
+}
+
+.window-controls-mac .btn {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
+.window-controls-mac .btn:hover { opacity: 0.8; }
 
-.btn:hover {
-  opacity: 0.8; 
+#close-btn { background-color: #ff5f56 !important; }
+#min-btn   { background-color: #ffbd2e !important; }
+#max-btn   { background-color: #27c93f !important; }
+
+/* ---- Windows-style minimal controls ---- */
+.window-controls-win {
+  gap: 2px;
+  height: 100%;
 }
 
-#close-btn { background-color: #ff5f56 !important; } 
-#min-btn   { background-color: #ffbd2e !important; } 
-#max-btn   { background-color: #27c93f !important; }
+.win-btn {
+  width: 40px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #71717a;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.win-btn:hover { background: rgba(255, 255, 255, 0.08); color: #f4f4f5; }
+.win-btn:active { background: rgba(255, 255, 255, 0.14); }
+
+.win-btn-close:hover { background: #e81123; color: #ffffff; }
+.win-btn-close:active { background: #f1707a; }
+
+body.light-theme .win-btn { color: #52525b; }
+body.light-theme .win-btn:hover { background: rgba(0, 0, 0, 0.06); color: #18181b; }
+body.light-theme .win-btn:active { background: rgba(0, 0, 0, 0.1); }
+body.light-theme .win-btn-close:hover { background: #e81123; color: #ffffff; }
+
+body.mocha-theme .win-btn { color: #a6adc8; }
+body.mocha-theme .win-btn:hover { background: rgba(205, 214, 244, 0.1); color: #cdd6f4; }
+body.mocha-theme .win-btn:active { background: rgba(205, 214, 244, 0.16); }
+body.mocha-theme .win-btn-close:hover { background: #f38ba8; color: #11111b; }
 
 /* ==========================================================================
    3. APP CONTENT & SIDEBAR WORKSPACE
@@ -949,9 +984,11 @@ body.light-theme .settings-footer { border-top-color: rgba(0,0,0,0.06); }
    ========================================================================== */
 .thoughts-dropdown {
   margin-bottom: 10px;
-  max-width: 480px;
-  /* No border, no background panel - this should never read as a card,
-     just a quiet aside that sits above the real answer. */
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  max-width: 420px;
 }
 
 .thoughts-toggle {
@@ -959,22 +996,19 @@ body.light-theme .settings-footer { border-top-color: rgba(0,0,0,0.06); }
   align-items: center;
   gap: 6px;
   width: 100%;
-  padding: 0;
+  padding: 8px 12px;
   background: transparent;
   border: none;
-  color: #4b4b52;
+  color: #71717a;
   font-size: 11px;
   cursor: pointer;
   text-align: left;
-  opacity: 0.8;
-  transition: opacity 0.15s ease, color 0.15s ease;
 }
-.thoughts-toggle:hover { color: #71717a; opacity: 1; }
+.thoughts-toggle:hover { color: #a1a1aa; }
 
 .thoughts-toggle .chevron {
   transition: transform 0.15s ease;
-  font-size: 8px;
-  opacity: 0.55;
+  font-size: 9px;
 }
 
 .thoughts-dropdown.open .chevron {
@@ -983,25 +1017,26 @@ body.light-theme .settings-footer { border-top-color: rgba(0,0,0,0.06); }
 
 .thoughts-content {
   display: none;
-  padding: 8px 0 0 1px;
+  padding: 0 12px 12px 12px;
   font-size: 12px;
-  font-style: italic;
-  line-height: 1.6;
-  /* Sits just barely above the #141416 chat background - present, but
-     clearly not the "real" text of the reply. */
-  color: #45454b;
+  line-height: 1.5;
+  color: #71717a;
   white-space: pre-wrap;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
   max-height: 240px;
   overflow-y: auto;
 }
 
 .thoughts-dropdown.open .thoughts-content {
   display: block;
+  padding-top: 10px;
 }
 
-body.light-theme .thoughts-toggle { color: #b4b4b9; }
-body.light-theme .thoughts-toggle:hover { color: #8a8a90; }
-body.light-theme .thoughts-content { color: #b8b8bd; }
+body.light-theme .thoughts-dropdown {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0,0,0,0.06);
+}
+body.light-theme .thoughts-content { color: #52525b; }
 
 /* ==========================================================================
    9. MARKDOWN RENDERING INSIDE AI RESPONSES
@@ -1759,9 +1794,13 @@ body.mocha-theme .text-btn-confirm:hover { color: #94e2ac; }
 body.mocha-theme .text-btn-danger { color: #f38ba8; }
 body.mocha-theme .text-btn-danger:hover { color: #eba0ac; }
 
-body.mocha-theme .thoughts-toggle { color: #585b70; }
-body.mocha-theme .thoughts-toggle:hover { color: #a6adc8; }
-body.mocha-theme .thoughts-content { color: #4b4d63; }
+body.mocha-theme .thoughts-dropdown {
+  background: rgba(205, 214, 244, 0.03);
+  border-color: rgba(205, 214, 244, 0.07);
+}
+body.mocha-theme .thoughts-toggle { color: #a6adc8; }
+body.mocha-theme .thoughts-toggle:hover { color: #cdd6f4; }
+body.mocha-theme .thoughts-content { color: #a6adc8; border-top-color: rgba(205, 214, 244, 0.05); }
 
 body.mocha-theme .ai-answer h4 { color: #a6adc8; }
 body.mocha-theme .ai-answer strong { color: #f5e0dc; }
@@ -1893,4 +1932,3 @@ body.mocha-theme .pin-box { border-color: rgba(205, 214, 244, 0.28); }
 body.mocha-theme .pin-box::before { background: #cba6f7; }
 body.mocha-theme .pin-box.active { border-color: rgba(203, 166, 247, 0.7); }
 body.mocha-theme .lock-error { color: #f38ba8; }
-
