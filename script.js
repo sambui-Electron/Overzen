@@ -1,29 +1,10 @@
 // 1. WINDOW CONTROLS & OVERLAY COUPLING
-// Two control sets share the same actions: the macOS-style traffic lights
-// (close-btn/min-btn/max-btn) and the minimal Windows-style buttons
-// (win-close-btn/win-min-btn/win-max-btn). Only one set is visible at a
-// time (see applyTitleBarStyle), but both stay wired up.
-function bindWindowControls(closeId, minId, maxId) {
-  const closeEl = document.getElementById(closeId);
-  const minEl = document.getElementById(minId);
-  const maxEl = document.getElementById(maxId);
-  if (closeEl) closeEl.addEventListener('click', () => window.api.close());
-  if (minEl) minEl.addEventListener('click', () => window.api.minimize());
-  if (maxEl) maxEl.addEventListener('click', () => window.api.maximizeToggle());
-}
-bindWindowControls('close-btn', 'min-btn', 'max-btn');
-bindWindowControls('win-close-btn', 'win-min-btn', 'win-max-btn');
+document.getElementById('close-btn').addEventListener('click', () => window.api.close());
+document.getElementById('min-btn').addEventListener('click', () => window.api.minimize());
+document.getElementById('max-btn').addEventListener('click', () => window.api.maximizeToggle());
 
-window.api.onMaximized(() => {
-  document.getElementById('max-btn').classList.add('maximized');
-  const winMaxBtn = document.getElementById('win-max-btn');
-  if (winMaxBtn) winMaxBtn.classList.add('maximized');
-});
-window.api.onUnmaximized(() => {
-  document.getElementById('max-btn').classList.remove('maximized');
-  const winMaxBtn = document.getElementById('win-max-btn');
-  if (winMaxBtn) winMaxBtn.classList.remove('maximized');
-});
+window.api.onMaximized(() => document.getElementById('max-btn').classList.add('maximized'));
+window.api.onUnmaximized(() => document.getElementById('max-btn').classList.remove('maximized'));
 
 // 2. OLLAMA CONFIGURATION & DOM ELEMENTS
 const DEFAULT_LOCAL_PORT = 11434;
@@ -50,7 +31,6 @@ const settingsCloseBtn = document.getElementById('settings-close-btn');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsSaveStatus = document.getElementById('settings-save-status');
 const themeSelect = document.getElementById('theme-select');
-const macTrafficLightSwitch = document.getElementById('mac-traffic-light-switch');
 const opacitySlider = document.getElementById('overlay-opacity-slider');
 const opacityValue = document.getElementById('overlay-opacity-value');
 const providerSelect = document.getElementById('provider-select');
@@ -291,7 +271,13 @@ function formatMarkdown(text) {
   processedText = processedText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   processedText = processedText.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
 
-  // 5. Block-level structure: headers, lists, paragraphs
+  // 4.5 Strikethrough
+  processedText = processedText.replace(/~~([^~\n]+)~~/g, '<del>$1</del>');
+
+  // 4.6 Links [text](url)
+  processedText = processedText.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+  // 5. Block-level structure: headers, lists, tables, blockquotes, rules, paragraphs
   processedText = renderMarkdownBlocks(processedText);
 
   // 6. Restore stashed HTML
@@ -300,12 +286,57 @@ function formatMarkdown(text) {
   return processedText;
 }
 
-// Turns a flat string (already inline-formatted) into headers/lists/paragraphs.
+// Splits a table row line into trimmed cell strings, respecting an optional
+// leading/trailing pipe and escaped pipes ("\|") inside cell content.
+function splitTableRow(line) {
+  let trimmed = line.trim();
+  if (trimmed.startsWith('|')) trimmed = trimmed.slice(1);
+  if (trimmed.endsWith('|') && !trimmed.endsWith('\\|')) trimmed = trimmed.slice(0, -1);
+
+  const cells = [];
+  let current = '';
+  for (let i = 0; i < trimmed.length; i++) {
+    const ch = trimmed[i];
+    if (ch === '\\' && trimmed[i + 1] === '|') {
+      current += '|';
+      i++;
+    } else if (ch === '|') {
+      cells.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+// A GFM table separator row looks like "| --- | :--- | ---: | :---: |"
+// (outer pipes optional, at least 1 dash per column, optional colons for alignment).
+function isTableSeparatorRow(line) {
+  const trimmed = line.trim();
+  return /^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/.test(trimmed) || /^\|?\s*:?-+:?\s*\|?$/.test(trimmed) && trimmed.includes('-');
+}
+
+function getColumnAlignments(sepLine) {
+  return splitTableRow(sepLine).map((cell) => {
+    const left = cell.startsWith(':');
+    const right = cell.endsWith(':');
+    if (left && right) return 'center';
+    if (right) return 'right';
+    if (left) return 'left';
+    return '';
+  });
+}
+
+// Turns a flat string (already inline-formatted) into headers/lists/tables/
+// blockquotes/rules/paragraphs.
 function renderMarkdownBlocks(text) {
   const lines = text.split('\n');
   let html = '';
   let inUl = false;
   let inOl = false;
+  let inBlockquote = false;
   let paragraphBuffer = [];
 
   const flushParagraph = () => {
@@ -318,22 +349,89 @@ function renderMarkdownBlocks(text) {
     if (inUl) { html += '</ul>'; inUl = false; }
     if (inOl) { html += '</ol>'; inOl = false; }
   };
+  const closeBlockquote = () => {
+    if (inBlockquote) { html += '</blockquote>'; inBlockquote = false; }
+  };
 
-  for (const rawLine of lines) {
+  let i = 0;
+  while (i < lines.length) {
+    const rawLine = lines[i];
     const line = rawLine.trim();
 
     if (line === '') {
       flushParagraph();
       closeLists();
+      closeBlockquote();
+      i++;
       continue;
     }
 
     if (/^%%MDPH_\d+%%$/.test(line)) {
       flushParagraph();
       closeLists();
+      closeBlockquote();
       html += line;
+      i++;
       continue;
     }
+
+    // Horizontal rule: a standalone line of 3+ -, * or _
+    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line)) {
+      flushParagraph();
+      closeLists();
+      closeBlockquote();
+      html += '<hr>';
+      i++;
+      continue;
+    }
+
+    // Table: a row containing a pipe, immediately followed by a valid
+    // "---|---|---" style separator row.
+    if (line.includes('|') && i + 1 < lines.length && isTableSeparatorRow(lines[i + 1])) {
+      flushParagraph();
+      closeLists();
+      closeBlockquote();
+
+      const headerCells = splitTableRow(line);
+      const alignments = getColumnAlignments(lines[i + 1]);
+      i += 2;
+
+      const bodyRows = [];
+      while (i < lines.length && lines[i].trim() !== '' && lines[i].includes('|')) {
+        bodyRows.push(splitTableRow(lines[i]));
+        i++;
+      }
+
+      const alignAttr = (idx) => alignments[idx] ? ` style="text-align:${alignments[idx]}"` : '';
+
+      html += '<table><thead><tr>';
+      headerCells.forEach((cell, idx) => {
+        html += `<th${alignAttr(idx)}>${cell}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+      bodyRows.forEach((row) => {
+        html += '<tr>';
+        headerCells.forEach((_, idx) => {
+          html += `<td${alignAttr(idx)}>${row[idx] !== undefined ? row[idx] : ''}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      continue;
+    }
+
+    // Blockquote (the leading ">" has already been HTML-escaped to "&gt;"
+    // by this point, since block parsing runs after the escaping step)
+    const bqMatch = line.match(/^&gt;\s?(.*)$/);
+    if (bqMatch) {
+      flushParagraph();
+      closeLists();
+      if (!inBlockquote) { html += '<blockquote>'; inBlockquote = true; }
+      html += `<p>${bqMatch[1]}</p>`;
+      i++;
+      continue;
+    }
+    closeBlockquote();
 
     const headerMatch = line.match(/^(#{1,4})\s+(.*)$/);
     if (headerMatch) {
@@ -341,6 +439,7 @@ function renderMarkdownBlocks(text) {
       closeLists();
       const level = headerMatch[1].length;
       html += `<h${level}>${headerMatch[2]}</h${level}>`;
+      i++;
       continue;
     }
 
@@ -350,6 +449,7 @@ function renderMarkdownBlocks(text) {
       if (inOl) { html += '</ol>'; inOl = false; }
       if (!inUl) { html += '<ul>'; inUl = true; }
       html += `<li>${ulMatch[1]}</li>`;
+      i++;
       continue;
     }
 
@@ -359,15 +459,18 @@ function renderMarkdownBlocks(text) {
       if (inUl) { html += '</ul>'; inUl = false; }
       if (!inOl) { html += '<ol>'; inOl = true; }
       html += `<li>${olMatch[1]}</li>`;
+      i++;
       continue;
     }
 
     closeLists();
     paragraphBuffer.push(line);
+    i++;
   }
 
   flushParagraph();
   closeLists();
+  closeBlockquote();
   return html;
 }
 
@@ -603,13 +706,12 @@ async function handleSendMessage() {
     const response = await fetch(`${getOllamaHost()}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: selectedModel, prompt: text, stream: true, think: true })
+      body: JSON.stringify({ model: selectedModel, prompt: text, stream: true })
     });
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    let fullThinking = "";
-
+    
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -618,26 +720,15 @@ async function handleSendMessage() {
       for (const line of lines) {
         if (line.trim() !== '') {
           const parsed = JSON.parse(line);
-          if (parsed.thinking) {
-            fullThinking += parsed.thinking;
-          }
           if (parsed.response) {
             fullAiResponse += parsed.response;
-          }
-          if (parsed.thinking || parsed.response) {
-            const combined = fullThinking
-              ? `<think>${fullThinking}</think>${fullAiResponse}`
-              : fullAiResponse;
-            updateAiMessage(aiMessageElement, combined, false);
+            updateAiMessage(aiMessageElement, fullAiResponse, false);
             chatMessages.scrollTop = chatMessages.scrollHeight;
           }
         }
       }
     }
-    const finalCombined = fullThinking
-      ? `<think>${fullThinking}</think>${fullAiResponse}`
-      : fullAiResponse;
-    updateAiMessage(aiMessageElement, finalCombined, true);
+    updateAiMessage(aiMessageElement, fullAiResponse, true);
     finalizeAndSave();
   } catch (error) {
     renderErrorReply(
@@ -702,17 +793,6 @@ function applyTheme(theme) {
   }
 }
 
-// Swaps between macOS-style traffic lights (left side, colored circles) and
-// a minimal Windows-style control set (right side, thin icon buttons). Both
-// sets are custom-drawn - this never touches the OS's native title bar.
-function applyTitleBarStyle(useMac) {
-  document.body.classList.toggle('win-titlebar', !useMac);
-  const macControls = document.getElementById('window-controls-mac');
-  const winControls = document.getElementById('window-controls-win');
-  if (macControls) macControls.classList.toggle('hidden', !useMac);
-  if (winControls) winControls.classList.toggle('hidden', !!useMac);
-}
-
 function setThemeButtons(theme) {
   themeSelect.value = theme;
   themeSelectUI.syncLabel();
@@ -770,8 +850,6 @@ async function populateSettingsForm() {
   selectedTheme = config.theme || 'dark';
   setThemeButtons(selectedTheme);
 
-  macTrafficLightSwitch.checked = !!config.macTrafficLight;
-
   const pct = Math.round((config.overlayOpacity || 0.8) * 100);
   opacitySlider.value = pct;
   opacityValue.innerText = `${pct}%`;
@@ -812,7 +890,6 @@ function closeSettingsModal() {
   cloudApiKeyInput.value = '';
   // revert any live theme preview that wasn't saved
   applyTheme(appConfig.theme || 'dark');
-  applyTitleBarStyle(appConfig.macTrafficLight);
   // discard any half-finished PIN entry and restore the switch to the real state
   resetApplockForms();
   applockSwitch.checked = lockStatus.enabled;
@@ -828,10 +905,6 @@ themeSelect.addEventListener('change', () => {
   selectedTheme = themeSelect.value;
   applyTheme(selectedTheme); // live preview, confirmed on Save
   updateSliderFill(opacitySlider);
-});
-
-macTrafficLightSwitch.addEventListener('change', () => {
-  applyTitleBarStyle(macTrafficLightSwitch.checked); // live preview, confirmed on Save
 });
 
 opacitySlider.addEventListener('input', () => {
@@ -877,7 +950,6 @@ settingsSaveBtn.addEventListener('click', async () => {
 
   const result = await window.api.setConfig({
     theme: selectedTheme,
-    macTrafficLight: macTrafficLightSwitch.checked,
     overlayOpacity,
     apiProvider: providerSelect.value,
     localRunner: localRunnerSelect.value,
@@ -896,7 +968,6 @@ settingsSaveBtn.addEventListener('click', async () => {
 
   appConfig = result.config;
   applyTheme(appConfig.theme);
-  applyTitleBarStyle(appConfig.macTrafficLight);
 
   if (providerSelect.value === 'cloud') {
     populateCloudModelsList();
@@ -1094,7 +1165,6 @@ applockDisableConfirmBtn.addEventListener('click', async () => {
 async function initConfig() {
   appConfig = await window.api.getConfig();
   applyTheme(appConfig.theme || 'dark');
-  applyTitleBarStyle(appConfig.macTrafficLight);
 
   lockStatus = await window.api.lock.status();
   syncLockButtonVisibility();
