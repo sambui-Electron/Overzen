@@ -13,14 +13,8 @@
   <!-- MAIN CONTAINER -->
   <div class="app-container">
     
-    <!-- MINIMALIST TITLE BAR (BRIGHT MACOS LIGHTS) -->
+    <!-- MINIMALIST TITLE BAR (WINDOWS-STYLE CONTROLS) -->
     <div class="custom-title-bar">
-      <!-- MACOS-STYLE TRAFFIC LIGHTS (left side; shown when "Use MacOS traffic light" is on) -->
-      <div class="window-controls window-controls-mac" id="window-controls-mac">
-        <div class="btn" id="close-btn"></div>
-        <div class="btn" id="min-btn"></div>
-        <div class="btn" id="max-btn"></div>
-      </div>
       <div class="title">Ollama Client</div>
       <!-- Only shown while Zen Mode is active, since the main toggle (in the sidebar) hides itself then -->
       <button id="zen-exit-btn" class="zen-exit-btn" title="Exit Zen Mode">
@@ -29,10 +23,8 @@
           <path d="M8 20c1-4 4-8 8-11"></path>
         </svg>
       </button>
-      <!-- WINDOWS-STYLE MINIMAL CONTROLS (right side; shown by default, since
-           "Use MacOS traffic light" defaults to off). Still fully custom -
-           thin-line icons, no native chrome. -->
-      <div class="window-controls window-controls-win hidden" id="window-controls-win">
+      <!-- WINDOWS-STYLE MINIMAL CONTROLS - thin-line icons, no native chrome. -->
+      <div class="window-controls window-controls-win" id="window-controls-win">
         <button type="button" class="win-btn" id="win-min-btn" title="Minimize">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
             <line x1="1" y1="5" x2="9" y2="5"></line>
@@ -133,14 +125,6 @@
               <option value="light">Light</option>
               <option value="mocha">Catppuccin Mocha</option>
             </select>
-          </div>
-
-          <div class="setting-row theme-row">
-            <label>Use MacOS traffic light</label>
-            <label class="switch">
-              <input type="checkbox" id="mac-traffic-light-switch" />
-              <span class="switch-slider"></span>
-            </label>
           </div>
 
           <div class="setting-row">
