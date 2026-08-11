@@ -26,7 +26,7 @@ html, body {
 }
 
 /* ==========================================================================
-   2. CUSTOM TITLE BAR - MACOS TRAFFIC LIGHTS + WINDOWS-STYLE CONTROLS
+   2. CUSTOM TITLE BAR & BRIGHT MACOS TRAFFIC LIGHTS
    ========================================================================== */
 .custom-title-bar {
   display: flex;
@@ -38,7 +38,7 @@ html, body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   user-select: none;
   position: relative;
-  z-index: 600;
+  z-index: 600; /* stays above the lock screen (z-index 500) so close/min/max remain usable while locked */
 }
 
 .title {
@@ -47,67 +47,32 @@ html, body {
   text-align: center;
   font-size: 11px;
   letter-spacing: 0.5px;
-  color:  #343435;;
-  padding-right: 60px;
+  color: #52525b;
+  padding-right: 60px; 
 }
 
 .window-controls {
   display: flex;
+  gap: 8px;
   align-items: center;
   -webkit-app-region: no-drag;
 }
 
-/* ---- macOS traffic lights ---- */
-.window-controls-mac {
-  gap: 8px;
-}
-
-.window-controls-mac .btn {
+.btn {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
-.window-controls-mac .btn:hover { opacity: 0.8; }
 
-#close-btn { background-color: #ff5f56 !important; }
-#min-btn   { background-color: #ffbd2e !important; }
+.btn:hover {
+  opacity: 0.8; 
+}
+
+#close-btn { background-color: #ff5f56 !important; } 
+#min-btn   { background-color: #ffbd2e !important; } 
 #max-btn   { background-color: #27c93f !important; }
-
-/* ---- Windows-style minimal controls ---- */
-.window-controls-win {
-  gap: 2px;
-  height: 100%;
-}
-
-.win-btn {
-  width: 40px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #71717a;
-  transition: background-color 0.12s ease, color 0.12s ease;
-}
-.win-btn:hover { background: rgba(255, 255, 255, 0.08); color: #f4f4f5; }
-.win-btn:active { background: rgba(255, 255, 255, 0.14); }
-
-.win-btn-close:hover { background: #e81123; color: #ffffff; }
-.win-btn-close:active { background: #f1707a; }
-
-body.light-theme .win-btn { color: #52525b; }
-body.light-theme .win-btn:hover { background: rgba(0, 0, 0, 0.06); color: #18181b; }
-body.light-theme .win-btn:active { background: rgba(0, 0, 0, 0.1); }
-body.light-theme .win-btn-close:hover { background: #e81123; color: #ffffff; }
-
-body.mocha-theme .win-btn { color: #a6adc8; }
-body.mocha-theme .win-btn:hover { background: rgba(205, 214, 244, 0.1); color: #cdd6f4; }
-body.mocha-theme .win-btn:active { background: rgba(205, 214, 244, 0.16); }
-body.mocha-theme .win-btn-close:hover { background: #f38ba8; color: #11111b; }
 
 /* ==========================================================================
    3. APP CONTENT & SIDEBAR WORKSPACE
@@ -1130,6 +1095,74 @@ body.light-theme .ai-answer .inline-code {
   color: #18181b;
 }
 
+/* ---- Tables ---- */
+.ai-answer table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4px 0 14px 0;
+  font-size: 13px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ai-answer th, .ai-answer td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.ai-answer th:last-child, .ai-answer td:last-child { border-right: none; }
+.ai-answer tr:last-child td { border-bottom: none; }
+.ai-answer thead th {
+  background: rgba(255, 255, 255, 0.04);
+  color: #f4f4f5;
+  font-weight: 600;
+}
+.ai-answer tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+/* ---- Blockquotes ---- */
+.ai-answer blockquote {
+  margin: 4px 0 14px 0;
+  padding: 2px 14px;
+  border-left: 3px solid rgba(255, 255, 255, 0.18);
+  color: #a1a1aa;
+}
+.ai-answer blockquote p {
+  margin: 6px 0;
+}
+.ai-answer blockquote p:last-child { margin-bottom: 0; }
+
+/* ---- Horizontal rules ---- */
+.ai-answer hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 16px 0;
+}
+
+/* ---- Links ---- */
+.ai-answer a {
+  color: #93c5fd;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ai-answer a:hover { color: #bfdbfe; }
+
+/* ---- Strikethrough ---- */
+.ai-answer del { color: #71717a; }
+
+body.light-theme .ai-answer table { border-color: rgba(0, 0, 0, 0.08); }
+body.light-theme .ai-answer th,
+body.light-theme .ai-answer td { border-color: rgba(0, 0, 0, 0.06); }
+body.light-theme .ai-answer thead th { background: rgba(0, 0, 0, 0.03); color: #18181b; }
+body.light-theme .ai-answer tbody tr:nth-child(even) { background: rgba(0, 0, 0, 0.015); }
+body.light-theme .ai-answer blockquote { border-left-color: rgba(0, 0, 0, 0.15); color: #52525b; }
+body.light-theme .ai-answer hr { border-top-color: rgba(0, 0, 0, 0.08); }
+body.light-theme .ai-answer a { color: #2563eb; }
+body.light-theme .ai-answer a:hover { color: #1d4ed8; }
+body.light-theme .ai-answer del { color: #9a9aa0; }
+
 /* ==========================================================================
    10. THEME TOGGLE SWITCH
    ========================================================================== */
@@ -1815,6 +1848,17 @@ body.mocha-theme .ai-answer .inline-code {
   background: rgba(205, 214, 244, 0.1);
   color: #cdd6f4;
 }
+
+body.mocha-theme .ai-answer table { border-color: rgba(205, 214, 244, 0.1); }
+body.mocha-theme .ai-answer th,
+body.mocha-theme .ai-answer td { border-color: rgba(205, 214, 244, 0.08); }
+body.mocha-theme .ai-answer thead th { background: rgba(205, 214, 244, 0.06); color: #cdd6f4; }
+body.mocha-theme .ai-answer tbody tr:nth-child(even) { background: rgba(205, 214, 244, 0.03); }
+body.mocha-theme .ai-answer blockquote { border-left-color: rgba(203, 166, 247, 0.4); color: #a6adc8; }
+body.mocha-theme .ai-answer hr { border-top-color: rgba(205, 214, 244, 0.1); }
+body.mocha-theme .ai-answer a { color: #89b4fa; }
+body.mocha-theme .ai-answer a:hover { color: #b4befe; }
+body.mocha-theme .ai-answer del { color: #6c7086; }
 
 body.mocha-theme #model-select,
 body.mocha-theme #provider-select,
