@@ -26,14 +26,14 @@ html, body {
 }
 
 /* ==========================================================================
-   2. CUSTOM TITLE BAR & BRIGHT MACOS TRAFFIC LIGHTS
+   2. CUSTOM TITLE BAR & WINDOWS-STYLE WINDOW CONTROLS
    ========================================================================== */
 .custom-title-bar {
   display: flex;
   align-items: center;
   height: 38px;
   background: #0f0f11;
-  padding: 0 15px;
+  padding: 0 0 0 15px;
   -webkit-app-region: drag;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   user-select: none;
@@ -48,31 +48,88 @@ html, body {
   font-size: 11px;
   letter-spacing: 0.5px;
   color: #52525b;
-  padding-right: 60px; 
 }
 
 .window-controls {
   display: flex;
-  gap: 8px;
   align-items: center;
   -webkit-app-region: no-drag;
 }
 
-.btn {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+.window-controls-win {
+  height: 100%;
+}
+
+.win-btn {
+  width: 46px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: background-color 0.12s ease, color 0.12s ease;
 }
 
-.btn:hover {
-  opacity: 0.8; 
+.win-btn svg {
+  pointer-events: none;
 }
 
-#close-btn { background-color: #ff5f56 !important; } 
-#min-btn   { background-color: #ffbd2e !important; } 
-#max-btn   { background-color: #27c93f !important; }
+.win-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f4f5;
+}
+
+.win-btn:active {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.win-btn-close:hover {
+  background: #e81123;
+  color: #ffffff;
+}
+
+.win-btn-close:active {
+  background: #c50f1f;
+}
+
+body.light-theme .win-btn {
+  color: #52525b;
+}
+body.light-theme .win-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #18181b;
+}
+body.light-theme .win-btn:active {
+  background: rgba(0, 0, 0, 0.1);
+}
+body.light-theme .win-btn-close:hover {
+  background: #e81123;
+  color: #ffffff;
+}
+body.light-theme .win-btn-close:active {
+  background: #c50f1f;
+}
+
+body.mocha-theme .win-btn {
+  color: #a6adc8;
+}
+body.mocha-theme .win-btn:hover {
+  background: rgba(205, 214, 244, 0.1);
+  color: #cdd6f4;
+}
+body.mocha-theme .win-btn:active {
+  background: rgba(205, 214, 244, 0.16);
+}
+body.mocha-theme .win-btn-close:hover {
+  background: #f38ba8;
+  color: #1e1e2e;
+}
+body.mocha-theme .win-btn-close:active {
+  background: #eba0ac;
+}
 
 /* ==========================================================================
    3. APP CONTENT & SIDEBAR WORKSPACE

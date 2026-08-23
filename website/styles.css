@@ -299,6 +299,8 @@ button:focus-visible {
         transform: none !important;
     }
     .app-mock,
+    .browser-mock,
+    .installer-mock,
     .hero-logo {
         animation: none !important;
     }
@@ -846,4 +848,360 @@ button:focus-visible {
 
 .footer-sep {
     opacity: 0.4;
+}
+
+
+.inline-code {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.88em;
+    color: #e4e4e7;
+}
+/* ==========================================================================
+   GUIDE PAGE (Download & Install)
+   ========================================================================== */
+.guide-nav-current {
+    color: var(--accent) !important;
+}
+
+.guide-page {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 50px 20px 100px;
+}
+
+.guide-hero {
+    text-align: center;
+    margin-bottom: 56px;
+}
+
+.guide-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+}
+
+.guide-step-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.guide-step-number {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.guide-step-head h3 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: var(--text);
+    margin: 0;
+}
+
+.guide-step-body {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+}
+
+.guide-step-mock {
+    flex-shrink: 0;
+}
+
+.guide-step-text {
+    flex: 1;
+    min-width: 0;
+    padding-top: 4px;
+}
+
+.guide-step-text p {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+    margin: 0 0 14px;
+}
+
+.guide-step-text ul {
+    margin: 0 0 14px 20px;
+    padding: 0;
+}
+
+.guide-step-text li {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.guide-step-text strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.guide-step-text a:not(.btn-primary) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.guide-mock-caption {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    opacity: 0.75;
+    text-align: center;
+    margin: 10px 0 0;
+    max-width: 240px;
+}
+
+.guide-edge-case {
+    margin: 56px 0 0;
+}
+
+.guide-final-cta {
+    text-align: center;
+    margin-top: 56px;
+}
+
+@media (max-width: 760px) {
+    .guide-step-body {
+        flex-direction: column;
+        align-items: center;
+    }
+    .guide-step-text {
+        width: 100%;
+    }
+}
+
+/* -------- mockup: browser + GitHub release card -------- */
+.browser-mock,
+.installer-mock {
+    width: 260px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-panel-2);
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.4);
+    animation: app-mock-float 6s ease-in-out infinite;
+}
+
+.installer-mock {
+    animation-delay: -2s;
+}
+
+.browser-mock-bar,
+.installer-mock-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 12px;
+    background: #171716;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.browser-mock-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.browser-mock-url {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 10px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.browser-mock-body {
+    padding: 16px;
+}
+
+.release-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.release-card-icon {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.release-card-name {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.release-card-btn {
+    flex-shrink: 0;
+    background: var(--accent);
+    color: #1e1e1e;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+}
+
+/* -------- mockup: installer wizard -------- */
+.installer-mock-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.installer-mock-path {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9.5px;
+    color: var(--text-muted);
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.installer-mock-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--text);
+}
+
+.installer-mock-check::before {
+    content: '\2713';
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    background: var(--accent);
+    color: #1e1e1e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+}
+
+.installer-mock-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.installer-mock-btn {
+    font-family: var(--font-body);
+    font-size: 10px;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.installer-mock-btn.cancel {
+    color: var(--text-muted);
+}
+
+.installer-mock-btn.install {
+    background: var(--accent);
+    color: #1e1e1e;
+    font-weight: 600;
+}
+
+/* -------- mockup: generic OS warning dialog (illustrative, inline) -------- */
+.os-dialog-mock {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    max-width: 320px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    padding: 12px 14px;
+    margin: 6px 0 4px;
+}
+
+.os-dialog-mock-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.os-dialog-mock-text {
+    font-family: var(--font-body);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.os-dialog-mock-text strong {
+    display: block;
+    color: var(--text);
+    font-size: 11.5px;
+    margin-bottom: 2px;
+}
+
+.os-dialog-caption {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0.6;
+    font-style: italic;
+    margin: 0 0 14px;
 }

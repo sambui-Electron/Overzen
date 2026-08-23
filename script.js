@@ -1,10 +1,10 @@
 // 1. WINDOW CONTROLS & OVERLAY COUPLING
-document.getElementById('close-btn').addEventListener('click', () => window.api.close());
-document.getElementById('min-btn').addEventListener('click', () => window.api.minimize());
-document.getElementById('max-btn').addEventListener('click', () => window.api.maximizeToggle());
+document.getElementById('win-close-btn').addEventListener('click', () => window.api.close());
+document.getElementById('win-min-btn').addEventListener('click', () => window.api.minimize());
+document.getElementById('win-max-btn').addEventListener('click', () => window.api.maximizeToggle());
 
-window.api.onMaximized(() => document.getElementById('max-btn').classList.add('maximized'));
-window.api.onUnmaximized(() => document.getElementById('max-btn').classList.remove('maximized'));
+window.api.onMaximized(() => document.getElementById('win-max-btn').classList.add('maximized'));
+window.api.onUnmaximized(() => document.getElementById('win-max-btn').classList.remove('maximized'));
 
 // 2. OLLAMA CONFIGURATION & DOM ELEMENTS
 const DEFAULT_LOCAL_PORT = 11434;
